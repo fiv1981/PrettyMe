@@ -191,7 +191,7 @@ async function generateResults() {
     const queue = Array.from({ length: resultCount }, (_, i) => selected[i % selected.length]);
 
     for (let i = 0; i < queue.length; i += 1) {
-      setStatus(`Generando imagen ${i + 1} de ${queue.length}…`);
+      setStatus(`⏳ Generando imagen ${i + 1} de ${queue.length}…`);
       const result = await generateOne(queue[i], data, mimeType, extraPrompt.value.trim());
       addResultCard({ imageUrl: result.imageUrl, styleLabel: queue[i].label }, i);
     }
