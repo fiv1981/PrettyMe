@@ -28,8 +28,9 @@ let resultCount = 2;
 let capturedDataUrl = '';
 const selectedStyles = new Set(['studio', 'travel']);
 
-function setStatus(text) {
+function setStatus(text, tone = '') {
   statusText.textContent = text;
+  statusText.className = `status-text${tone ? ` is-${tone}` : ''}`;
 }
 
 function renderStyles() {
@@ -124,7 +125,7 @@ function addResultCard({ imageUrl, styleLabel }, index) {
     <img src="${imageUrl}" alt="Resultado ${index + 1}" />
     <strong>${styleLabel}</strong>
     <div class="result-actions">
-      <a class="primary-btn" href="${imageUrl}" download="prettyme-${index + 1}.png">Descargar</a>
+      <a class="download-btn" href="${imageUrl}" download="prettyme-${index + 1}.png">Descargar</a>
     </div>
   `;
   resultsGrid.appendChild(card);
@@ -132,12 +133,12 @@ function addResultCard({ imageUrl, styleLabel }, index) {
 
 async function generateResults() {
   if (!capturedDataUrl) {
-    setStatus('Hazte primero un selfie desde la app.');
+    setStatus('Hazte primero un selfie desde la app.', 'warning');
     return;
   }
 
   resultsGrid.innerHTML = '';
-  setStatus('Generando tus fotos… esto puede tardar un poco.');
+  setStatus('Generando tus fotos… esto puede tardar un poco.', '');
   generateBtn.disabled = true;
 
   try {
@@ -152,10 +153,29 @@ async function generateResults() {
       addResultCard({ imageUrl: result.imageUrl, styleLabel: queue[i].label }, i);
     }
 
-    setStatus('¡Listo! Ya puedes descargar tus fotos en máxima calidad.');
+    setStatus('¡Listo! Ya puedes descargar tus fotos en máxima calidad.', 'success');
   } catch (error) {
     console.error(error);
-    setStatus(`No se pudo generar: ${error.message}`);
+    const message = String(error.message || 'Error desconocido');
+    if (message.includes('RESOURCE_EXHAUSTED') || message.includes('quota') || message.includes('429')) {
+      resultsGrid.innerHTML = `
+        <article class="empty-state">
+          <strong>La generación no está disponible ahora mismo</strong>
+          <span>La API de imagen ha respondido que no hay cuota disponible en este momento.</span>
+          <span>Puedes volver a intentarlo más tarde o cambiar a una clave/proyecto con cuota activa.</span>
+        </article>
+      `;
+      setStatus('La cuota de generación de imagen no está disponible ahora mismo.', 'warning');
+    } else {
+      resultsGrid.innerHTML = `
+        <article class="empty-state">
+          <strong>No he podido generar las fotos</strong>
+          <span>Algo ha fallado al hablar con el motor de imagen.</span>
+          <span>Prueba otra vez en un momento.</span>
+        </article>
+      `;
+      setStatus('No he podido generar las fotos ahora mismo.', 'error');
+    }
   } finally {
     generateBtn.disabled = false;
   }
