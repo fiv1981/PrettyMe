@@ -193,12 +193,14 @@ textarea {
 .primary-btn--xl { min-height: 58px; font-size: 1rem; }
 .generate-btn {
   width: 100%;
-  min-height: 62px;
+  min-height: 72px;
   font-size: 1.02rem;
-  letter-spacing: .02em;
-  background: linear-gradient(135deg, #ff2f92, #ff69c3 52%, #ffd2ea);
-  color: #fff;
-  box-shadow: 0 18px 34px rgba(255,47,146,.28);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  background: #fff;
+  color: var(--accent);
+  border: 2px solid var(--accent);
+  box-shadow: 0 18px 34px rgba(255,47,146,.16);
 }
 .ghost-btn {
   color: var(--text); background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08);
