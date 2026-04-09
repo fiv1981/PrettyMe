@@ -1,0 +1,13 @@
+{
+  "name": "prettyme",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev . --compatibility-date=2024-12-01",
+    "deploy": "wrangler pages deploy ."
+  },
+  "dependencies": {
+    "@google/genai": "^0.14.1"
+  }
+}

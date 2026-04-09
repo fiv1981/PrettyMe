@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>PrettyMe</title>
+  <meta name="theme-color" content="#0f1021" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon-512.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <section class="hero glass">
+      <div class="hero-copy">
+        <div class="brand-row">
+          <img src="icon.svg" alt="PrettyMe" class="brand-icon" />
+          <span class="brand-name">PrettyMe</span>
+        </div>
+        <h1>Tu selfie convertido en fotos de perfil espectaculares</h1>
+        <p class="hero-text">Hazte una foto desde la app y genera versiones tuyas más favorecedoras, en escenarios elegantes, profesionales, exóticos y muy sociales.</p>
+        <div class="hero-badges">
+          <span>Selfie en vivo</span>
+          <span>2, 4 o 6 resultados</span>
+          <span>Descarga máxima calidad</span>
+        </div>
+      </div>
+      <div class="hero-preview glass-soft">
+        <div class="preview-grid">
+          <div class="preview-card preview-card--a"></div>
+          <div class="preview-card preview-card--b"></div>
+          <div class="preview-card preview-card--c"></div>
+          <div class="preview-card preview-card--d"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <section class="capture-panel glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Paso 1</p>
+            <h2>Hazte un selfie</h2>
+          </div>
+          <button id="switchCameraBtn" class="ghost-btn">Cambiar cámara</button>
+        </div>
+        <div class="camera-wrap">
+          <video id="camera" autoplay playsinline muted></video>
+          <img id="capturedImage" class="hidden" alt="Selfie capturado" />
+          <div class="camera-overlay">Encuadra bien tu cara y deja algo de hombros</div>
+        </div>
+        <div class="capture-actions">
+          <button id="startCameraBtn" class="ghost-btn">Abrir cámara</button>
+          <button id="captureBtn" class="primary-btn">Hacer selfie</button>
+          <button id="retakeBtn" class="ghost-btn">Repetir</button>
+        </div>
+      </section>
+
+      <section class="controls-panel glass">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Paso 2</p>
+            <h2>Elige el resultado</h2>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="resultCount">Número de imágenes</label>
+          <div class="segmented" id="resultCount">
+            <button class="segment active" data-count="2">2</button>
+            <button class="segment" data-count="4">4</button>
+            <button class="segment" data-count="6">6</button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Estilos deseados</label>
+          <div class="style-grid" id="styleGrid"></div>
+        </div>
+
+        <div class="field-group">
+          <label for="extraPrompt">Detalles extra</label>
+          <textarea id="extraPrompt" placeholder="Ejemplo: luz dorada, estilo editorial, mirada confiada, fondo de ciudad elegante..."></textarea>
+        </div>
+
+        <button id="generateBtn" class="primary-btn primary-btn--xl">Generar fotos</button>
+        <p id="statusText" class="status-text">Lista para empezar.</p>
+      </section>
+    </section>
+
+    <section class="results-panel glass">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Paso 3</p>
+          <h2>Resultados</h2>
+        </div>
+      </div>
+      <div id="resultsGrid" class="results-grid"></div>
+    </section>
+  </main>
+
+  <canvas id="captureCanvas" class="hidden"></canvas>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
