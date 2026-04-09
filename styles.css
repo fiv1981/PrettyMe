@@ -51,8 +51,14 @@ h1 { margin: 0 0 12px; font-size: clamp(2.2rem, 4.8vw, 4rem); line-height: .94; 
 .hero-text { margin: 0; color: var(--muted); font-size: 1.06rem; max-width: 58ch; }
 .eyebrow { color: var(--muted); }
 .hero-preview { padding: 14px; }
-.preview-grid { display:grid; grid-template-columns:1.1fr .22fr 1fr 1fr 1fr; gap:12px; height:100%; min-height: 260px; }
-.preview-grid--story { align-items: stretch; }
+.preview-composition {
+  display: grid;
+  grid-template-columns: 1fr .18fr 1.1fr;
+  gap: 14px;
+  align-items: center;
+  min-height: 280px;
+}
+
 .preview-story {
   border-radius: 24px;
   min-height: 240px;
@@ -89,10 +95,43 @@ h1 { margin: 0 0 12px; font-size: clamp(2.2rem, 4.8vw, 4rem); line-height: .94; 
   background-clip: text;
   filter: drop-shadow(0 12px 24px rgba(255,47,146,.28));
 }
-.preview-story--selfie::before { background-image: linear-gradient(135deg, rgba(80,80,95,.3), rgba(18,18,24,.62)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center top; filter: saturate(.82) contrast(.94); }
-.preview-story--result::before { background-image: linear-gradient(135deg, rgba(255,47,146,.18), rgba(18,18,24,.55)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center 20%; }
-.preview-story--result.alt::before { background-image: linear-gradient(135deg, rgba(255,47,146,.14), rgba(18,18,24,.55)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center 35%; }
-.preview-story--result.alt-2::before { background-image: linear-gradient(135deg, rgba(255,47,146,.14), rgba(18,18,24,.55)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center 15%; }
+.preview-story--selfie {
+  transform: rotate(-4deg);
+}
+.preview-story--selfie::before { background-image: linear-gradient(135deg, rgba(80,80,95,.22), rgba(18,18,24,.68)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center top; filter: saturate(.72) contrast(.9); }
+.preview-story--selfie::after { background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.74)); }
+.preview-collage {
+  position: relative;
+  min-height: 260px;
+}
+.preview-collage .preview-story {
+  position: absolute;
+  width: 62%;
+  min-height: 180px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.32);
+}
+.preview-story--night {
+  top: 0;
+  left: 0;
+  width: 72%;
+  transform: rotate(-2deg);
+  z-index: 3;
+}
+.preview-story--night::before { background-image: linear-gradient(135deg, rgba(255,47,146,.2), rgba(18,18,24,.58)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center 18%; }
+.preview-story--beach {
+  right: 0;
+  top: 58px;
+  transform: rotate(4deg);
+  z-index: 2;
+}
+.preview-story--beach::before { background-image: linear-gradient(135deg, rgba(255,47,146,.15), rgba(18,18,24,.48)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center 32%; }
+.preview-story--pro {
+  left: 18%;
+  bottom: 0;
+  transform: rotate(-5deg);
+  z-index: 1;
+}
+.preview-story--pro::before { background-image: linear-gradient(135deg, rgba(255,47,146,.12), rgba(18,18,24,.54)), url("https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=900&q=80"); background-position: center 12%; }
 .workspace { display:grid; grid-template-columns: 1fr .9fr; gap:16px; }
 .capture-panel, .controls-panel, .results-panel { padding: 16px; }
 .panel-head { display:flex; justify-content:space-between; align-items:start; gap:12px; margin-bottom: 14px; }
@@ -185,7 +224,9 @@ textarea {
 .hidden { display:none !important; }
 @media (max-width: 980px) {
   .hero, .workspace { grid-template-columns: 1fr; }
-  .preview-grid { grid-template-columns: 1fr; }
+  .preview-composition { grid-template-columns: 1fr; }
+  .preview-collage { min-height: 620px; }
+  .preview-collage .preview-story { width: 72%; }
   .preview-arrow { display: none; }
   .style-grid, .capture-actions, .segmented { grid-template-columns: 1fr; }
 }
