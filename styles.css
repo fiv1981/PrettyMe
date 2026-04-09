@@ -154,6 +154,7 @@ video, #capturedImage { width:100%; height:100%; object-fit: cover; display:bloc
 .capture-actions, .segmented { display:grid; gap:10px; }
 .capture-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .segmented { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.segmented--two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .capture-actions { margin-top: 14px; }
 .field-group { display:grid; gap:10px; margin-bottom: 16px; }
 .field-group label { font-weight: 700; }
@@ -230,10 +231,24 @@ textarea {
     transform: rotate(90deg);
     margin: -4px auto;
   }
-  .preview-collage { min-height: 400px; }
-  .preview-collage .preview-story { width: 70%; }
-  .preview-story--night { left: 2%; top: 0; }
-  .preview-story--beach { right: 4%; top: 72px; }
-  .preview-story--pro { left: 18%; bottom: 0; }
-  .style-grid, .capture-actions, .segmented { grid-template-columns: 1fr; }
+  .preview-collage {
+    min-height: auto;
+    display: grid;
+    gap: 14px;
+  }
+  .preview-collage .preview-story {
+    position: relative;
+    width: 100%;
+    min-height: 190px;
+    left: auto;
+    right: auto;
+    top: auto;
+    bottom: auto;
+  }
+  .preview-story--night,
+  .preview-story--beach,
+  .preview-story--pro {
+    transform: none;
+  }
+  .style-grid, .capture-actions, .segmented, .segmented--two { grid-template-columns: 1fr; }
 }
