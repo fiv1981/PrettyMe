@@ -89,12 +89,14 @@ video, #capturedImage { width:100%; height:100%; object-fit: cover; display:bloc
   padding:10px 12px; border-radius:16px;
   background: rgba(7, 7, 12, 0.78); color:#fff; font-size:.9rem;
 }
-.capture-actions, .segmented { display:flex; gap:10px; flex-wrap:wrap; }
+.capture-actions, .segmented { display:grid; gap:10px; }
+.capture-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.segmented { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .capture-actions { margin-top: 14px; }
 .field-group { display:grid; gap:10px; margin-bottom: 16px; }
 .field-group label { font-weight: 700; }
 .segment {
-  min-width: 60px; padding: 12px 18px; border-radius: 16px;
+  min-width: 0; min-height: 50px; padding: 12px 18px; border-radius: 16px;
   background: rgba(255,255,255,.05); color: var(--text); border:1px solid rgba(255,255,255,.08); cursor:pointer;
 }
 .segment.active, .style-chip.active {
@@ -104,6 +106,9 @@ video, #capturedImage { width:100%; height:100%; object-fit: cover; display:bloc
 }
 .style-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:10px; }
 .style-chip {
+  min-height: 58px;
+  display: inline-flex;
+  align-items: center;
   padding: 12px 14px; border-radius: 18px; border:1px solid rgba(255,255,255,.08);
   background: rgba(255,255,255,.04); cursor:pointer; text-align:left; color:var(--text);
 }
@@ -112,6 +117,10 @@ textarea {
   background: rgba(255,255,255,.04); color: var(--text); padding:14px;
 }
 .primary-btn, .ghost-btn, .download-btn {
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 0; border-radius: 18px; padding: 13px 18px; font-weight: 800; cursor: pointer; text-decoration:none;
 }
 .primary-btn, .download-btn {
@@ -146,12 +155,12 @@ textarea {
   display:grid; gap:10px; padding: 10px; border-radius: 22px; background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
 }
 .result-card img { width:100%; aspect-ratio:4/5; object-fit:cover; border-radius:18px; display:block; }
-.result-actions { display:flex; gap:10px; }
+.result-actions { display:grid; grid-template-columns: 1fr; gap:10px; }
 .empty-state {
   display:grid; gap:10px; padding:20px; border-radius:22px; background: rgba(255,255,255,.03); border:1px dashed rgba(255,255,255,.08); color: var(--muted);
 }
 .hidden { display:none !important; }
 @media (max-width: 980px) {
   .hero, .workspace { grid-template-columns: 1fr; }
-  .style-grid { grid-template-columns: 1fr; }
+  .style-grid, .capture-actions, .segmented { grid-template-columns: 1fr; }
 }
