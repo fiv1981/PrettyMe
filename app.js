@@ -10,7 +10,9 @@ const styles = [
 ];
 
 const camera = document.getElementById('camera');
+const cameraWrap = document.getElementById('cameraWrap');
 const capturedImage = document.getElementById('capturedImage');
+const galleryInput = document.getElementById('galleryInput');
 const captureCanvas = document.getElementById('captureCanvas');
 const statusText = document.getElementById('statusText');
 const styleGrid = document.getElementById('styleGrid');
@@ -18,6 +20,7 @@ const resultsGrid = document.getElementById('resultsGrid');
 const extraPrompt = document.getElementById('extraPrompt');
 const switchCameraBtn = document.getElementById('switchCameraBtn');
 const startCameraBtn = document.getElementById('startCameraBtn');
+const uploadBtn = document.getElementById('uploadBtn');
 const captureBtn = document.getElementById('captureBtn');
 const retakeBtn = document.getElementById('retakeBtn');
 const generateBtn = document.getElementById('generateBtn');
@@ -58,6 +61,7 @@ document.querySelectorAll('[data-count]').forEach((btn) => {
 });
 
 async function startCamera() {
+  cameraWrap.classList.remove('hidden');
   if (stream) stream.getTracks().forEach((track) => track.stop());
   stream = await navigator.mediaDevices.getUserMedia({
     video: {
@@ -92,8 +96,31 @@ function resetCapture() {
   capturedDataUrl = '';
   capturedImage.src = '';
   capturedImage.classList.add('hidden');
-  camera.classList.remove('hidden');
-  setStatus('Puedes repetir tu selfie cuando quieras.');
+  camera.classList.add('hidden');
+  cameraWrap.classList.add('hidden');
+  if (stream) {
+    stream.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+  setStatus('Puedes hacerte otro selfie o subir una foto desde la galería.');
+}
+
+function loadFromGallery(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    capturedDataUrl = reader.result;
+    cameraWrap.classList.remove('hidden');
+    camera.classList.add('hidden');
+    capturedImage.src = capturedDataUrl;
+    capturedImage.classList.remove('hidden');
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      stream = null;
+    }
+    setStatus('Foto cargada desde la galería. Ya puedes generar resultados.', 'success');
+  };
+  reader.readAsDataURL(file);
 }
 
 function buildPrompt(style, extra) {
@@ -186,15 +213,14 @@ switchCameraBtn.addEventListener('click', async () => {
   facingMode = facingMode === 'user' ? 'environment' : 'user';
   await startCamera();
 });
+uploadBtn.addEventListener('click', () => galleryInput.click());
+galleryInput.addEventListener('change', (event) => loadFromGallery(event.target.files?.[0]));
 captureBtn.addEventListener('click', capturePhoto);
 retakeBtn.addEventListener('click', resetCapture);
 generateBtn.addEventListener('click', generateResults);
 
 renderStyles();
-startCamera().catch((error) => {
-  console.error(error);
-  setStatus('No he podido abrir la cámara. Revisa permisos del navegador.');
-});
+setStatus('Abre la cámara o sube una foto desde la galería para empezar.');
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));

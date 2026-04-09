@@ -90,7 +90,7 @@ video, #capturedImage { width:100%; height:100%; object-fit: cover; display:bloc
   background: rgba(7, 7, 12, 0.78); color:#fff; font-size:.9rem;
 }
 .capture-actions, .segmented { display:grid; gap:10px; }
-.capture-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.capture-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .segmented { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .capture-actions { margin-top: 14px; }
 .field-group { display:grid; gap:10px; margin-bottom: 16px; }

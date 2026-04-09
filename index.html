@@ -48,13 +48,15 @@
           </div>
           <button id="switchCameraBtn" class="ghost-btn">Cambiar cámara</button>
         </div>
-        <div class="camera-wrap">
-          <video id="camera" autoplay playsinline muted></video>
+        <div id="cameraWrap" class="camera-wrap hidden">
+          <video id="camera" autoplay playsinline muted class="hidden"></video>
           <img id="capturedImage" class="hidden" alt="Selfie capturado" />
           <div class="camera-overlay">Encuadra bien tu cara y deja algo de hombros</div>
         </div>
+        <input id="galleryInput" class="hidden" type="file" accept="image/*" />
         <div class="capture-actions">
           <button id="startCameraBtn" class="ghost-btn">Abrir cámara</button>
+          <button id="uploadBtn" class="ghost-btn">Subir desde galería</button>
           <button id="captureBtn" class="primary-btn">Hacer selfie</button>
           <button id="retakeBtn" class="ghost-btn">Repetir</button>
         </div>
