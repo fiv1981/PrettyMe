@@ -137,7 +137,7 @@ function loadFromGallery(file) {
 }
 
 function buildPrompt(style, extra) {
-  return `Use the uploaded selfie as the only identity reference. Preserve identity strongly. Make the same person look exceptionally attractive, photogenic and flattering, suitable for a profile photo. ${style.prompt}. Maintain realistic facial structure, premium retouching, detailed eyes, clean skin, elegant styling, high-end camera quality, natural realism, avoid distortion, avoid extra people, avoid duplicate face, avoid changing gender. ${extra ? `Extra guidance: ${extra}.` : ''}`;
+  return `Use the uploaded selfie as the only identity reference. Preserve identity strongly and keep the face fully recognizable. Make the same person look exceptionally attractive, photogenic and flattering, suitable for a premium profile photo. ${style.prompt}. Preserve bone structure, nose, mouth, eyes and overall identity. Improve beauty in a realistic way: soften wrinkles, blemishes, under-eye darkness, skin texture irregularities and small asymmetries, but do not erase them completely. Keep all features believable and faithful to the real person. Improve harmony, facial symmetry, skin quality, light, posture and styling according to conventional beauty standards while remaining realistic and natural. No plastic skin, no fake face, no age regression to a different person, no changing ethnicity, no changing gender, no extra people, no duplicate face, no distorted hands. High-end photography, flattering retouching, luxurious result, maximum realism. ${extra ? `Extra guidance: ${extra}.` : ''}`;
 }
 
 async function generateOne(style, imageBase64, mimeType, extra) {
@@ -177,7 +177,8 @@ async function generateResults() {
     return;
   }
 
-  resultsGrid.innerHTML = '';
+  const hadResults = resultsGrid.children.length > 0;
+  if (!hadResults) resultsGrid.innerHTML = '';
   setStatus('Generando tus fotos… esto puede tardar un poco.', '');
   generateBtn.disabled = true;
 
@@ -198,7 +199,7 @@ async function generateResults() {
     console.error(error);
     const message = String(error.message || 'Error desconocido');
     if (message.includes('RESOURCE_EXHAUSTED') || message.includes('quota') || message.includes('429')) {
-      resultsGrid.innerHTML = `
+      if (!resultsGrid.children.length) resultsGrid.innerHTML = `
         <article class="empty-state">
           <strong>La generación no está disponible ahora mismo</strong>
           <span>La API de imagen ha respondido que no hay cuota disponible en este momento.</span>
@@ -207,7 +208,7 @@ async function generateResults() {
       `;
       setStatus('La cuota de generación de imagen no está disponible ahora mismo.', 'warning');
     } else {
-      resultsGrid.innerHTML = `
+      if (!resultsGrid.children.length) resultsGrid.innerHTML = `
         <article class="empty-state">
           <strong>No he podido generar las fotos</strong>
           <span>Algo ha fallado al hablar con el motor de imagen.</span>
