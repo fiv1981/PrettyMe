@@ -36,6 +36,15 @@ function setStatus(text, tone = '') {
   statusText.className = `status-text${tone ? ` is-${tone}` : ''}`;
 }
 
+function syncCaptureButtons() {
+  const hasStream = Boolean(stream);
+  const hasCapture = Boolean(capturedDataUrl);
+  startCameraBtn.classList.toggle('hidden', hasStream || hasCapture);
+  switchCameraBtn.classList.toggle('hidden', !hasStream || hasCapture);
+  captureBtn.classList.toggle('hidden', !hasStream || hasCapture);
+  retakeBtn.classList.toggle('hidden', !hasCapture);
+}
+
 function renderStyles() {
   styleGrid.innerHTML = styles.map((style) => `
     <button class="style-chip ${selectedStyles.has(style.id) ? 'active' : ''}" data-style="${style.id}">${style.label}</button>
@@ -75,6 +84,7 @@ async function startCamera() {
   camera.classList.remove('hidden');
   capturedImage.classList.add('hidden');
   setStatus('Cámara lista. Hazte un selfie bonito ✨');
+  syncCaptureButtons();
 }
 
 function capturePhoto() {
@@ -89,7 +99,8 @@ function capturePhoto() {
   capturedImage.src = capturedDataUrl;
   capturedImage.classList.remove('hidden');
   camera.classList.add('hidden');
-  setStatus('Selfie capturado. Ya puedes generar resultados.');
+  setStatus('Selfie capturado. Ya puedes generar resultados.', 'success');
+  syncCaptureButtons();
 }
 
 function resetCapture() {
@@ -103,6 +114,7 @@ function resetCapture() {
     stream = null;
   }
   setStatus('Puedes hacerte otro selfie o subir una foto desde la galería.');
+  syncCaptureButtons();
 }
 
 function loadFromGallery(file) {
@@ -119,6 +131,7 @@ function loadFromGallery(file) {
       stream = null;
     }
     setStatus('Foto cargada desde la galería. Ya puedes generar resultados.', 'success');
+    syncCaptureButtons();
   };
   reader.readAsDataURL(file);
 }
@@ -220,6 +233,7 @@ retakeBtn.addEventListener('click', resetCapture);
 generateBtn.addEventListener('click', generateResults);
 
 renderStyles();
+syncCaptureButtons();
 setStatus('Abre la cámara o sube una foto desde la galería para empezar.');
 
 if ('serviceWorker' in navigator) {
