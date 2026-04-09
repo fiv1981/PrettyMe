@@ -225,8 +225,11 @@ textarea {
 @media (max-width: 980px) {
   .hero, .workspace { grid-template-columns: 1fr; }
   .preview-composition { grid-template-columns: 1fr; }
-  .preview-collage { min-height: 620px; }
-  .preview-collage .preview-story { width: 72%; }
+  .preview-collage { min-height: 420px; }
+  .preview-collage .preview-story { width: 82%; }
+  .preview-story--night { left: 0; top: 0; }
+  .preview-story--beach { right: 0; top: 88px; }
+  .preview-story--pro { left: 10%; bottom: 0; }
   .preview-arrow { display: none; }
   .style-grid, .capture-actions, .segmented { grid-template-columns: 1fr; }
 }

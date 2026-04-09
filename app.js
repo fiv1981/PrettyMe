@@ -11,6 +11,7 @@ const styles = [
 
 const camera = document.getElementById('camera');
 const cameraWrap = document.getElementById('cameraWrap');
+const cameraOverlay = document.getElementById('cameraOverlay');
 const capturedImage = document.getElementById('capturedImage');
 const galleryInput = document.getElementById('galleryInput');
 const captureCanvas = document.getElementById('captureCanvas');
@@ -82,6 +83,7 @@ async function startCamera() {
   });
   camera.srcObject = stream;
   camera.classList.remove('hidden');
+  cameraOverlay.classList.remove('hidden');
   capturedImage.classList.add('hidden');
   setStatus('Cámara lista. Hazte un selfie bonito ✨');
   syncCaptureButtons();
@@ -99,6 +101,7 @@ function capturePhoto() {
   capturedImage.src = capturedDataUrl;
   capturedImage.classList.remove('hidden');
   camera.classList.add('hidden');
+  cameraOverlay.classList.add('hidden');
   setStatus('Selfie capturado. Ya puedes generar resultados.', 'success');
   syncCaptureButtons();
 }
@@ -110,9 +113,11 @@ function resetCapture() {
   cameraWrap.classList.remove('hidden');
   if (stream) {
     camera.classList.remove('hidden');
+    cameraOverlay.classList.remove('hidden');
     setStatus('Puedes repetir el selfie ahora mismo.');
   } else {
     camera.classList.add('hidden');
+    cameraOverlay.classList.add('hidden');
     cameraWrap.classList.add('hidden');
     setStatus('Puedes hacerte otro selfie o subir una foto desde la galería.');
   }
@@ -126,6 +131,7 @@ function loadFromGallery(file) {
     capturedDataUrl = reader.result;
     cameraWrap.classList.remove('hidden');
     camera.classList.add('hidden');
+    cameraOverlay.classList.add('hidden');
     capturedImage.src = capturedDataUrl;
     capturedImage.classList.remove('hidden');
     if (stream) {
