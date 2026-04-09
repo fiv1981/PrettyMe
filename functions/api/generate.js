@@ -31,7 +31,7 @@ export async function onRequestPost(context) {
       return json({ error: 'Missing prompt or image' }, 400);
     }
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-image-preview:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json'
@@ -61,7 +61,7 @@ export async function onRequestPost(context) {
 
     const data = await response.json();
     if (!response.ok) {
-      return json({ error: data?.error?.message || 'Gemini request failed', model: 'gemini-3-pro-image-preview', details: data }, 502);
+      return json({ error: data?.error?.message || 'Gemini request failed', model: 'gemini-2.5-flash-image', details: data }, 502);
     }
 
     for (const part of data?.candidates?.[0]?.content?.parts || []) {
