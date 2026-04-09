@@ -82,11 +82,19 @@
         </div>
 
         <div class="field-group">
+          <label>Tipo de foto</label>
+          <div class="segmented segmented--two" id="photoType">
+            <button class="segment active" data-photo-type="full">Cuerpo entero</button>
+            <button class="segment" data-photo-type="portrait">Primera persona</button>
+          </div>
+        </div>
+
+        <div class="field-group">
           <label for="extraPrompt">Detalles extra</label>
           <textarea id="extraPrompt" placeholder="Ejemplo: luz dorada, estilo editorial, mirada confiada, fondo de ciudad elegante..."></textarea>
         </div>
 
-        <button id="generateBtn" class="primary-btn primary-btn--xl">Generar fotos</button>
+        <button id="generateBtn" class="generate-btn primary-btn--xl">Generar fotos</button>
         <p id="statusText" class="status-text">Lista para empezar.</p>
       </section>
     </section>

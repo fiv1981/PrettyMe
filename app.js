@@ -29,6 +29,7 @@ const generateBtn = document.getElementById('generateBtn');
 let stream;
 let facingMode = 'user';
 let resultCount = 2;
+let photoType = 'full';
 let capturedDataUrl = '';
 const selectedStyles = new Set(['studio', 'travel']);
 
@@ -67,6 +68,13 @@ document.querySelectorAll('[data-count]').forEach((btn) => {
   btn.addEventListener('click', () => {
     resultCount = Number(btn.dataset.count);
     document.querySelectorAll('[data-count]').forEach((node) => node.classList.toggle('active', node === btn));
+  });
+});
+
+document.querySelectorAll('[data-photo-type]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    photoType = btn.dataset.photoType;
+    document.querySelectorAll('[data-photo-type]').forEach((node) => node.classList.toggle('active', node === btn));
   });
 });
 
@@ -145,7 +153,10 @@ function loadFromGallery(file) {
 }
 
 function buildPrompt(style, extra) {
-  return `Use the uploaded selfie only as an identity reference for the person. Do not preserve the original clothes, background, room, furniture, lighting or framing from the source image. Recreate the full image from scratch so everything matches the selected scenario perfectly. ${style.prompt}. The result must show the same person, fully recognizable, but in a much more beautiful, flattering and polished way. Beauty and perfection are the highest priority. Make the person look realistically 5 to 10 years younger, while remaining clearly the same real person. Reduce or remove wrinkles, expression lines, skin marks, blemishes, dark circles, pores, uneven texture, dullness, gray hair and visible signs of aging. Skin should look smooth, luminous and healthy, but still realistic. Teeth should look clean, aligned and naturally white when smiling. Hair should look professionally styled, glossy and salon-quality. Improve facial harmony, symmetry, posture and overall attractiveness according to conventional beauty standards, while staying believable and photographic. Prefer full-body or at least three-quarter body framing unless the user explicitly asks for a close-up in the extra details. Preserve identity, face structure and recognizability, but rebuild wardrobe, styling, background and composition to fit the chosen environment naturally. No old-looking result, no extra people, no duplicate face, no distorted anatomy, no leftover elements from the source selfie. ${extra ? `Extra guidance: ${extra}.` : ''}`;
+  const framing = photoType === 'portrait'
+    ? 'Use a bust or close portrait framing, suitable for a profile picture.'
+    : 'Prefer full-body or at least three-quarter body framing, unless impossible.';
+  return `Use the uploaded selfie only as an identity reference for the person. Do not preserve the original clothes, background, room, furniture, lighting or framing from the source image. Recreate the full image from scratch so everything matches the selected scenario perfectly. ${style.prompt}. ${framing} The result must show the same person, fully recognizable, but in a much more beautiful, flattering and polished way. Beauty and perfection are the highest priority. Make the person look realistically 5 to 10 years younger, while remaining clearly the same real person. Reduce or remove wrinkles, expression lines, skin marks, blemishes, dark circles, pores, uneven texture, dullness, gray hair and visible signs of aging. Skin should look smooth, luminous and healthy, but still realistic. Teeth should look clean, aligned and naturally white when smiling. Hair should look professionally styled, glossy and salon-quality. Improve facial harmony, symmetry, posture and overall attractiveness according to conventional beauty standards, while staying believable and photographic. Preserve identity, face structure and recognizability, but rebuild wardrobe, styling, background and composition to fit the chosen environment naturally. No old-looking result, no extra people, no duplicate face, no distorted anatomy, no leftover elements from the source selfie. ${extra ? `Extra guidance: ${extra}.` : ''}`;
 }
 
 async function generateOne(style, imageBase64, mimeType, extra) {
