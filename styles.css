@@ -40,9 +40,9 @@ button, textarea { font: inherit; }
 }
 .hero {
   display: grid;
-  grid-template-columns: 1.05fr .95fr;
+  grid-template-columns: .98fr 1.02fr;
   gap: 18px;
-  padding: 22px;
+  padding: 22px 16px 22px 16px;
 }
 .brand-row { display:flex; align-items:center; gap:10px; margin-bottom: 12px; }
 .brand-icon { width: 44px; height: 44px; }
@@ -53,8 +53,8 @@ h1 { margin: 0 0 12px; font-size: clamp(2.2rem, 4.8vw, 4rem); line-height: .94; 
 .hero-preview { padding: 14px; }
 .preview-composition {
   display: grid;
-  grid-template-columns: 1fr .16fr 1.22fr;
-  gap: 14px;
+  grid-template-columns: 1fr .16fr 1.12fr;
+  gap: 10px;
   align-items: center;
   min-height: 280px;
 }
@@ -96,40 +96,40 @@ h1 { margin: 0 0 12px; font-size: clamp(2.2rem, 4.8vw, 4rem); line-height: .94; 
   filter: drop-shadow(0 12px 24px rgba(255,47,146,.28));
 }
 .preview-story--selfie {
-  transform: rotate(-4deg);
+  transform: none;
 }
 .preview-story--selfie::before { background-image: linear-gradient(135deg, rgba(80,80,95,.22), rgba(18,18,24,.68)), url("./images/top-img-selfie.jpg"); background-position: center top; filter: saturate(.72) contrast(.9); }
 .preview-story--selfie::after { background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.74)); }
 .preview-collage {
   position: relative;
-  min-height: 260px;
+  min-height: 248px;
 }
 .preview-collage .preview-story {
   position: absolute;
-  width: 54%;
-  min-height: 170px;
+  width: 48%;
+  min-height: 156px;
   box-shadow: 0 20px 40px rgba(0,0,0,.32);
 }
 .preview-story--night {
   top: 0;
   left: 0;
-  width: 62%;
+  width: 56%;
   transform: rotate(-2deg);
-  z-index: 3;
+  z-index: 2;
 }
 .preview-story--night::before { background-image: linear-gradient(135deg, rgba(255,47,146,.2), rgba(18,18,24,.58)), url("./images/top-img-night.jpg"); background-position: center 18%; }
 .preview-story--beach {
   right: 4%;
-  top: 42px;
-  transform: rotate(3deg);
-  z-index: 2;
+  top: 26px;
+  transform: rotate(2deg);
+  z-index: 1;
 }
 .preview-story--beach::before { background-image: linear-gradient(135deg, rgba(255,47,146,.15), rgba(18,18,24,.48)), url("./images/top-img-beach.jpg"); background-position: center 32%; }
 .preview-story--pro {
-  left: 24%;
-  bottom: 4px;
+  left: 28%;
+  bottom: 0;
   transform: rotate(-4deg);
-  z-index: 1;
+  z-index: 3;
 }
 .preview-story--pro::before { background-image: linear-gradient(135deg, rgba(255,47,146,.12), rgba(18,18,24,.54)), url("./images/top-img-pro.jpg"); background-position: center 12%; }
 .workspace { display:grid; grid-template-columns: 1fr .9fr; gap:16px; }
@@ -225,11 +225,15 @@ textarea {
 @media (max-width: 980px) {
   .hero, .workspace { grid-template-columns: 1fr; }
   .preview-composition { grid-template-columns: 1fr; }
+  .preview-arrow {
+    display: grid;
+    transform: rotate(90deg);
+    margin: -4px auto;
+  }
   .preview-collage { min-height: 400px; }
-  .preview-collage .preview-story { width: 74%; }
+  .preview-collage .preview-story { width: 70%; }
   .preview-story--night { left: 2%; top: 0; }
   .preview-story--beach { right: 4%; top: 72px; }
-  .preview-story--pro { left: 12%; bottom: 0; }
-  .preview-arrow { display: none; }
+  .preview-story--pro { left: 18%; bottom: 0; }
   .style-grid, .capture-actions, .segmented { grid-template-columns: 1fr; }
 }
