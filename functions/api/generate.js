@@ -1,5 +1,3 @@
-import { GoogleGenAI, Modality } from '@google/genai';
-
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
 
 function json(data, status = 200) {
@@ -20,35 +18,46 @@ export async function onRequestPost(context) {
       return json({ error: 'Missing prompt or image' }, 400);
     }
 
-    const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image-preview',
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: `${prompt}\n\nReturn one single high quality profile-style image. Style label: ${style || 'profile portrait'}.` },
-            {
-              inlineData: {
-                mimeType,
-                data: imageBase64
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                text: `${prompt}\n\nReturn one single high quality profile-style image. Style label: ${style || 'profile portrait'}.`
+              },
+              {
+                inlineData: {
+                  mimeType,
+                  data: imageBase64
+                }
               }
-            }
-          ]
+            ]
+          }
+        ],
+        generationConfig: {
+          responseModalities: ['TEXT', 'IMAGE']
         }
-      ],
-      config: {
-        responseModalities: [Modality.IMAGE, Modality.TEXT]
-      }
+      })
     });
 
-    for (const part of response?.candidates?.[0]?.content?.parts || []) {
+    const data = await response.json();
+    if (!response.ok) {
+      return json({ error: data?.error?.message || 'Gemini request failed', details: data }, 502);
+    }
+
+    for (const part of data?.candidates?.[0]?.content?.parts || []) {
       if (part.inlineData?.data) {
         return json({ imageUrl: `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}` });
       }
     }
 
-    return json({ error: 'No image returned by Gemini' }, 502);
+    return json({ error: 'No image returned by Gemini', details: data }, 502);
   } catch (error) {
     return json({ error: error.message || 'Generation failed' }, 500);
   }
