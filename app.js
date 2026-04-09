@@ -107,13 +107,15 @@ function resetCapture() {
   capturedDataUrl = '';
   capturedImage.src = '';
   capturedImage.classList.add('hidden');
-  camera.classList.add('hidden');
-  cameraWrap.classList.add('hidden');
+  cameraWrap.classList.remove('hidden');
   if (stream) {
-    stream.getTracks().forEach((track) => track.stop());
-    stream = null;
+    camera.classList.remove('hidden');
+    setStatus('Puedes repetir el selfie ahora mismo.');
+  } else {
+    camera.classList.add('hidden');
+    cameraWrap.classList.add('hidden');
+    setStatus('Puedes hacerte otro selfie o subir una foto desde la galería.');
   }
-  setStatus('Puedes hacerte otro selfie o subir una foto desde la galería.');
   syncCaptureButtons();
 }
 
