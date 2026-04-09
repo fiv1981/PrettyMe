@@ -1,14 +1,27 @@
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
+export const onRequestOptions = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
+};
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' }
+    headers: {
+      'content-type': 'application/json; charset=utf-8',
+      'Access-Control-Allow-Origin': '*'
+    }
   });
 }
 
 export async function onRequestPost(context) {
   try {
+    const GEMINI_API_KEY = context.env.GEMINI_API_KEY || context.env.GOOGLE_API_KEY || '';
     if (!GEMINI_API_KEY) {
       return json({ error: 'Missing GEMINI_API_KEY' }, 500);
     }
