@@ -185,9 +185,22 @@ function updateZoomSlider() {
 }
 
 function updateCropImage() {
-  cropImage.style.width = `${cropState.imageWidth * cropState.scale}px`;
-  cropImage.style.height = `${cropState.imageHeight * cropState.scale}px`;
-  cropImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px)`;
+  const normalizedRotation = ((cropState.rotation % 360) + 360) % 360;
+  const scaledBaseWidth = cropState.baseWidth * cropState.scale;
+  const scaledBaseHeight = cropState.baseHeight * cropState.scale;
+  cropImage.style.width = `${scaledBaseWidth}px`;
+  cropImage.style.height = `${scaledBaseHeight}px`;
+
+  let transform = `translate(${cropState.x}px, ${cropState.y}px) `;
+  if (normalizedRotation === 90) {
+    transform += `translate(${cropState.imageWidth * cropState.scale}px, 0) rotate(90deg)`;
+  } else if (normalizedRotation === 180) {
+    transform += `translate(${cropState.imageWidth * cropState.scale}px, ${cropState.imageHeight * cropState.scale}px) rotate(180deg)`;
+  } else if (normalizedRotation === 270) {
+    transform += `translate(0, ${cropState.imageHeight * cropState.scale}px) rotate(270deg)`;
+  }
+
+  cropImage.style.transform = transform;
 }
 
 function clampCropPosition() {
@@ -537,6 +550,7 @@ rotateCropBtn.addEventListener('click', () => {
   cropState.imageWidth = rotated.width;
   cropState.imageHeight = rotated.height;
   fitCropToViewport();
+  updateCropImage();
   setStatus('Foto rotada. Ajusta el encuadre si hace falta.');
 });
 
