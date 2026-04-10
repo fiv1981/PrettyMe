@@ -123,6 +123,7 @@ async function startCamera(forceRestart = false) {
     camera.classList.remove('hidden');
     cameraOverlay.classList.remove('hidden');
     capturedImage.classList.add('hidden');
+    camera.play?.().catch(() => {});
     updateCameraMirror();
     setStatus('Cámara lista. Hazte un selfie bonito ✨');
     syncCaptureButtons();
@@ -179,6 +180,7 @@ function resetCapture() {
   if (stream) {
     camera.classList.remove('hidden');
     cameraOverlay.classList.remove('hidden');
+    camera.play?.().catch(() => {});
     updateCameraMirror();
     setStatus('Puedes repetir el selfie ahora mismo.');
   } else {
