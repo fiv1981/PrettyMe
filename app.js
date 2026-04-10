@@ -41,7 +41,7 @@ let capturedDataUrl = '';
 let cropSourceDataUrl = '';
 let dragState = null;
 let pinchState = null;
-const generationProvider = 'nanobanana';
+const generationProvider = 'gemini';
 const selectedStyles = new Set(['studio', 'travel']);
 const cropState = {
   scale: 1,
@@ -377,7 +377,7 @@ async function generateResults() {
 
   const hadResults = resultsGrid.children.length > 0;
   if (!hadResults) resultsGrid.innerHTML = '';
-  setStatus('Generando tus fotos con Nano Banana… esto puede tardar un poco.', '');
+  setStatus('Generando tus fotos… esto puede tardar un poco.', '');
   generateBtn.disabled = true;
 
   try {
