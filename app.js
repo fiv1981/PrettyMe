@@ -25,27 +25,54 @@ const uploadBtn = document.getElementById('uploadBtn');
 const captureBtn = document.getElementById('captureBtn');
 const retakeBtn = document.getElementById('retakeBtn');
 const generateBtn = document.getElementById('generateBtn');
+const cropEditor = document.getElementById('cropEditor');
+const cropViewport = document.getElementById('cropViewport');
+const cropImage = document.getElementById('cropImage');
+const cropZoom = document.getElementById('cropZoom');
+const applyCropBtn = document.getElementById('applyCropBtn');
+const cancelCropBtn = document.getElementById('cancelCropBtn');
 
 let stream;
 let facingMode = 'user';
 let resultCount = 2;
 let photoType = 'full';
 let capturedDataUrl = '';
+let cropSourceDataUrl = '';
+let dragState = null;
 const generationProvider = 'nanobanana';
 const selectedStyles = new Set(['studio', 'travel']);
+const cropState = {
+  scale: 1,
+  minScale: 1,
+  x: 0,
+  y: 0,
+  naturalWidth: 0,
+  naturalHeight: 0,
+  viewportWidth: 0,
+  viewportHeight: 0
+};
 
 function setStatus(text, tone = '') {
   statusText.textContent = text;
   statusText.className = `status-text${tone ? ` is-${tone}` : ''}`;
 }
 
+function stopStream() {
+  if (stream) {
+    stream.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+}
+
 function syncCaptureButtons() {
   const hasStream = Boolean(stream);
   const hasCapture = Boolean(capturedDataUrl);
-  startCameraBtn.classList.toggle('hidden', hasStream || hasCapture);
-  switchCameraBtn.classList.toggle('hidden', !hasStream || hasCapture);
-  captureBtn.classList.toggle('hidden', !hasStream || hasCapture);
-  retakeBtn.classList.toggle('hidden', !hasCapture);
+  const isCropping = !cropEditor.classList.contains('hidden');
+  startCameraBtn.classList.toggle('hidden', hasStream || hasCapture || isCropping);
+  switchCameraBtn.classList.toggle('hidden', !hasStream || hasCapture || isCropping);
+  captureBtn.classList.toggle('hidden', !hasStream || hasCapture || isCropping);
+  retakeBtn.classList.toggle('hidden', !hasCapture || isCropping);
+  uploadBtn.classList.toggle('hidden', isCropping);
 }
 
 function renderStyles() {
@@ -80,8 +107,9 @@ document.querySelectorAll('[data-photo-type]').forEach((btn) => {
 });
 
 async function startCamera() {
+  cropEditor.classList.add('hidden');
   cameraWrap.classList.remove('hidden');
-  if (stream) stream.getTracks().forEach((track) => track.stop());
+  stopStream();
   stream = await navigator.mediaDevices.getUserMedia({
     video: {
       facingMode,
@@ -111,14 +139,19 @@ function capturePhoto() {
   capturedImage.classList.remove('hidden');
   camera.classList.add('hidden');
   cameraOverlay.classList.add('hidden');
+  cropEditor.classList.add('hidden');
   setStatus('Selfie capturado. Ya puedes generar resultados.', 'success');
   syncCaptureButtons();
 }
 
 function resetCapture() {
   capturedDataUrl = '';
+  cropSourceDataUrl = '';
   capturedImage.src = '';
   capturedImage.classList.add('hidden');
+  cropImage.src = '';
+  cropEditor.classList.add('hidden');
+  cropZoom.value = '1';
   cameraWrap.classList.remove('hidden');
   if (stream) {
     camera.classList.remove('hidden');
@@ -133,22 +166,83 @@ function resetCapture() {
   syncCaptureButtons();
 }
 
+function updateCropImage() {
+  cropImage.style.width = `${cropState.naturalWidth * cropState.scale}px`;
+  cropImage.style.height = `${cropState.naturalHeight * cropState.scale}px`;
+  cropImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px)`;
+}
+
+function clampCropPosition() {
+  const scaledWidth = cropState.naturalWidth * cropState.scale;
+  const scaledHeight = cropState.naturalHeight * cropState.scale;
+  const minX = Math.min(0, cropState.viewportWidth - scaledWidth);
+  const minY = Math.min(0, cropState.viewportHeight - scaledHeight);
+  cropState.x = Math.min(0, Math.max(minX, cropState.x));
+  cropState.y = Math.min(0, Math.max(minY, cropState.y));
+}
+
+function setupCropper() {
+  cropState.viewportWidth = cropViewport.clientWidth;
+  cropState.viewportHeight = cropViewport.clientHeight;
+  cropState.naturalWidth = cropImage.naturalWidth;
+  cropState.naturalHeight = cropImage.naturalHeight;
+  cropState.minScale = Math.max(
+    cropState.viewportWidth / cropState.naturalWidth,
+    cropState.viewportHeight / cropState.naturalHeight
+  );
+  cropState.scale = cropState.minScale;
+  cropZoom.value = '1';
+  const scaledWidth = cropState.naturalWidth * cropState.scale;
+  const scaledHeight = cropState.naturalHeight * cropState.scale;
+  cropState.x = (cropState.viewportWidth - scaledWidth) / 2;
+  cropState.y = (cropState.viewportHeight - scaledHeight) / 2;
+  clampCropPosition();
+  updateCropImage();
+}
+
+function openCropEditor(dataUrl) {
+  cropSourceDataUrl = dataUrl;
+  capturedDataUrl = '';
+  cameraWrap.classList.add('hidden');
+  cropEditor.classList.remove('hidden');
+  capturedImage.classList.add('hidden');
+  camera.classList.add('hidden');
+  cameraOverlay.classList.add('hidden');
+  stopStream();
+  cropImage.onload = () => {
+    setupCropper();
+    setStatus('Ajusta el encuadre de la foto y pulsa “Usar recorte”.');
+    syncCaptureButtons();
+  };
+  cropImage.src = dataUrl;
+}
+
+function applyCrop() {
+  if (!cropImage.src) return;
+  const outputWidth = 1200;
+  const outputHeight = 1500;
+  captureCanvas.width = outputWidth;
+  captureCanvas.height = outputHeight;
+  const ctx = captureCanvas.getContext('2d');
+  const sx = -cropState.x / cropState.scale;
+  const sy = -cropState.y / cropState.scale;
+  const sw = cropState.viewportWidth / cropState.scale;
+  const sh = cropState.viewportHeight / cropState.scale;
+  ctx.drawImage(cropImage, sx, sy, sw, sh, 0, 0, outputWidth, outputHeight);
+  capturedDataUrl = captureCanvas.toDataURL('image/jpeg', 0.95);
+  cropEditor.classList.add('hidden');
+  cameraWrap.classList.remove('hidden');
+  capturedImage.src = capturedDataUrl;
+  capturedImage.classList.remove('hidden');
+  setStatus('Foto recortada y lista para generar resultados.', 'success');
+  syncCaptureButtons();
+}
+
 function loadFromGallery(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = () => {
-    capturedDataUrl = reader.result;
-    cameraWrap.classList.remove('hidden');
-    camera.classList.add('hidden');
-    cameraOverlay.classList.add('hidden');
-    capturedImage.src = capturedDataUrl;
-    capturedImage.classList.remove('hidden');
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      stream = null;
-    }
-    setStatus('Foto cargada desde la galería. Ya puedes generar resultados.', 'success');
-    syncCaptureButtons();
+    openCropEditor(reader.result);
   };
   reader.readAsDataURL(file);
 }
@@ -243,6 +337,59 @@ async function generateResults() {
     generateBtn.disabled = false;
   }
 }
+
+cropZoom.addEventListener('input', () => {
+  const zoomFactor = Number(cropZoom.value);
+  cropState.scale = cropState.minScale * zoomFactor;
+  clampCropPosition();
+  updateCropImage();
+});
+
+function getPoint(event) {
+  if (event.touches?.[0]) {
+    return { x: event.touches[0].clientX, y: event.touches[0].clientY };
+  }
+  return { x: event.clientX, y: event.clientY };
+}
+
+function startDrag(event) {
+  if (cropEditor.classList.contains('hidden')) return;
+  const point = getPoint(event);
+  dragState = {
+    startX: point.x,
+    startY: point.y,
+    originX: cropState.x,
+    originY: cropState.y
+  };
+}
+
+function moveDrag(event) {
+  if (!dragState) return;
+  event.preventDefault();
+  const point = getPoint(event);
+  cropState.x = dragState.originX + (point.x - dragState.startX);
+  cropState.y = dragState.originY + (point.y - dragState.startY);
+  clampCropPosition();
+  updateCropImage();
+}
+
+function endDrag() {
+  dragState = null;
+}
+
+cropViewport.addEventListener('pointerdown', startDrag);
+window.addEventListener('pointermove', moveDrag);
+window.addEventListener('pointerup', endDrag);
+window.addEventListener('pointercancel', endDrag);
+applyCropBtn.addEventListener('click', applyCrop);
+cancelCropBtn.addEventListener('click', () => {
+  cropEditor.classList.add('hidden');
+  cropImage.src = '';
+  cropSourceDataUrl = '';
+  cameraWrap.classList.add('hidden');
+  setStatus('Carga otra foto desde la galería o usa la cámara.');
+  syncCaptureButtons();
+});
 
 startCameraBtn.addEventListener('click', startCamera);
 switchCameraBtn.addEventListener('click', async () => {

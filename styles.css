@@ -152,6 +152,47 @@ video { transform: scaleX(-1); }
   padding:10px 12px; border-radius:16px;
   background: rgba(7, 7, 12, 0.78); color:#fff; font-size:.9rem;
 }
+.crop-editor {
+  display: grid;
+  gap: 12px;
+}
+.crop-viewport {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  aspect-ratio: 4/5;
+  background: #09090d;
+  border: 1px solid rgba(255,255,255,.08);
+  touch-action: none;
+  cursor: grab;
+}
+.crop-viewport:active {
+  cursor: grabbing;
+}
+#cropImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  user-select: none;
+  -webkit-user-drag: none;
+  max-width: none;
+}
+.crop-frame {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,.16), inset 0 0 0 9999px rgba(0,0,0,.16);
+  border-radius: 22px;
+}
+.crop-zoom-label {
+  font-weight: 700;
+}
+.crop-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
 .capture-actions, .segmented { display:grid; gap:10px; }
 .capture-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .segmented { grid-template-columns: repeat(3, minmax(0, 1fr)); }
