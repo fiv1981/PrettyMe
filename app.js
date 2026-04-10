@@ -69,6 +69,10 @@ function stopStream() {
   }
 }
 
+function updateCameraMirror() {
+  camera.classList.toggle('is-mirrored', facingMode === 'user');
+}
+
 function syncCaptureButtons() {
   const hasStream = Boolean(stream);
   const hasCapture = Boolean(capturedDataUrl);
@@ -111,9 +115,20 @@ document.querySelectorAll('[data-photo-type]').forEach((btn) => {
   });
 });
 
-async function startCamera() {
+async function startCamera(forceRestart = false) {
   cropEditor.classList.add('hidden');
   cameraWrap.classList.remove('hidden');
+
+  if (stream && !forceRestart) {
+    camera.classList.remove('hidden');
+    cameraOverlay.classList.remove('hidden');
+    capturedImage.classList.add('hidden');
+    updateCameraMirror();
+    setStatus('Cámara lista. Hazte un selfie bonito ✨');
+    syncCaptureButtons();
+    return;
+  }
+
   stopStream();
   stream = await navigator.mediaDevices.getUserMedia({
     video: {
@@ -127,6 +142,7 @@ async function startCamera() {
   camera.classList.remove('hidden');
   cameraOverlay.classList.remove('hidden');
   capturedImage.classList.add('hidden');
+  updateCameraMirror();
   setStatus('Cámara lista. Hazte un selfie bonito ✨');
   syncCaptureButtons();
 }
@@ -163,6 +179,7 @@ function resetCapture() {
   if (stream) {
     camera.classList.remove('hidden');
     cameraOverlay.classList.remove('hidden');
+    updateCameraMirror();
     setStatus('Puedes repetir el selfie ahora mismo.');
   } else {
     camera.classList.add('hidden');
@@ -569,7 +586,7 @@ cancelCropBtn.addEventListener('click', () => {
 startCameraBtn.addEventListener('click', startCamera);
 switchCameraBtn.addEventListener('click', async () => {
   facingMode = facingMode === 'user' ? 'environment' : 'user';
-  await startCamera();
+  await startCamera(true);
 });
 uploadBtn.addEventListener('click', () => galleryInput.click());
 galleryInput.addEventListener('change', (event) => loadFromGallery(event.target.files?.[0]));
