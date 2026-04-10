@@ -31,7 +31,6 @@ let facingMode = 'user';
 let resultCount = 2;
 let photoType = 'full';
 let capturedDataUrl = '';
-const generationProvider = 'nanobanana';
 const selectedStyles = new Set(['studio', 'travel']);
 
 function setStatus(text, tone = '') {
@@ -168,9 +167,7 @@ async function generateOne(style, imageBase64, mimeType, extra) {
       prompt: buildPrompt(style, extra),
       imageBase64,
       mimeType,
-      imageDataUrl: capturedDataUrl,
-      style: style.label,
-      provider: generationProvider
+      style: style.label
     })
   });
   if (!response.ok) {
@@ -201,7 +198,7 @@ async function generateResults() {
 
   const hadResults = resultsGrid.children.length > 0;
   if (!hadResults) resultsGrid.innerHTML = '';
-  setStatus('Generando tus fotos con Nano Banana… esto puede tardar un poco.', '');
+  setStatus('Generando tus fotos… esto puede tardar un poco.', '');
   generateBtn.disabled = true;
 
   try {
@@ -228,7 +225,7 @@ async function generateResults() {
           <span>Puedes volver a intentarlo más tarde o cambiar a una clave/proyecto con cuota activa.</span>
         </article>
       `;
-      setStatus('La cuota o el servicio de generación no está disponible ahora mismo.', 'warning');
+      setStatus('La cuota de generación de imagen no está disponible ahora mismo.', 'warning');
     } else {
       if (!resultsGrid.children.length) resultsGrid.innerHTML = `
         <article class="empty-state">
