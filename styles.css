@@ -185,8 +185,21 @@ video { transform: scaleX(-1); }
   box-shadow: inset 0 0 0 2px rgba(255,255,255,.16), inset 0 0 0 9999px rgba(0,0,0,.16);
   border-radius: 22px;
 }
+.crop-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.crop-zoom-group {
+  display: grid;
+  gap: 8px;
+}
 .crop-zoom-label {
   font-weight: 700;
+}
+.crop-rotate-btn {
+  min-width: 132px;
 }
 .crop-actions {
   display: grid;
@@ -303,5 +316,6 @@ textarea {
   .preview-story--pro {
     transform: none;
   }
-  .style-grid, .capture-actions, .segmented, .segmented--two { grid-template-columns: 1fr; }
+  .style-grid, .capture-actions, .segmented, .segmented--two, .crop-toolbar, .crop-actions { grid-template-columns: 1fr; }
+  .crop-rotate-btn { width: 100%; }
 }

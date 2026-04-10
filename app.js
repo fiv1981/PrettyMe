@@ -29,6 +29,7 @@ const cropEditor = document.getElementById('cropEditor');
 const cropViewport = document.getElementById('cropViewport');
 const cropImage = document.getElementById('cropImage');
 const cropZoom = document.getElementById('cropZoom');
+const rotateCropBtn = document.getElementById('rotateCropBtn');
 const applyCropBtn = document.getElementById('applyCropBtn');
 const cancelCropBtn = document.getElementById('cancelCropBtn');
 
@@ -39,6 +40,7 @@ let photoType = 'full';
 let capturedDataUrl = '';
 let cropSourceDataUrl = '';
 let dragState = null;
+let pinchState = null;
 const generationProvider = 'nanobanana';
 const selectedStyles = new Set(['studio', 'travel']);
 const cropState = {
@@ -46,10 +48,13 @@ const cropState = {
   minScale: 1,
   x: 0,
   y: 0,
-  naturalWidth: 0,
-  naturalHeight: 0,
+  imageWidth: 0,
+  imageHeight: 0,
+  baseWidth: 0,
+  baseHeight: 0,
   viewportWidth: 0,
-  viewportHeight: 0
+  viewportHeight: 0,
+  rotation: 0
 };
 
 function setStatus(text, tone = '') {
@@ -147,6 +152,8 @@ function capturePhoto() {
 function resetCapture() {
   capturedDataUrl = '';
   cropSourceDataUrl = '';
+  dragState = null;
+  pinchState = null;
   capturedImage.src = '';
   capturedImage.classList.add('hidden');
   cropImage.src = '';
@@ -166,34 +173,64 @@ function resetCapture() {
   syncCaptureButtons();
 }
 
+function getRotatedDimensions(width, height, rotation) {
+  const quarterTurns = ((rotation % 360) + 360) % 360;
+  return quarterTurns === 90 || quarterTurns === 270
+    ? { width: height, height: width }
+    : { width, height };
+}
+
+function updateZoomSlider() {
+  cropZoom.value = String(cropState.scale / cropState.minScale);
+}
+
 function updateCropImage() {
-  cropImage.style.width = `${cropState.naturalWidth * cropState.scale}px`;
-  cropImage.style.height = `${cropState.naturalHeight * cropState.scale}px`;
+  cropImage.style.width = `${cropState.imageWidth * cropState.scale}px`;
+  cropImage.style.height = `${cropState.imageHeight * cropState.scale}px`;
   cropImage.style.transform = `translate(${cropState.x}px, ${cropState.y}px)`;
 }
 
 function clampCropPosition() {
-  const scaledWidth = cropState.naturalWidth * cropState.scale;
-  const scaledHeight = cropState.naturalHeight * cropState.scale;
+  const scaledWidth = cropState.imageWidth * cropState.scale;
+  const scaledHeight = cropState.imageHeight * cropState.scale;
   const minX = Math.min(0, cropState.viewportWidth - scaledWidth);
   const minY = Math.min(0, cropState.viewportHeight - scaledHeight);
   cropState.x = Math.min(0, Math.max(minX, cropState.x));
   cropState.y = Math.min(0, Math.max(minY, cropState.y));
 }
 
+function fitCropToViewport() {
+  const previousCenterX = (cropState.viewportWidth / 2 - cropState.x) / cropState.scale;
+  const previousCenterY = (cropState.viewportHeight / 2 - cropState.y) / cropState.scale;
+  cropState.minScale = Math.max(
+    cropState.viewportWidth / cropState.imageWidth,
+    cropState.viewportHeight / cropState.imageHeight
+  );
+  cropState.scale = Math.max(cropState.scale, cropState.minScale);
+  cropState.x = cropState.viewportWidth / 2 - previousCenterX * cropState.scale;
+  cropState.y = cropState.viewportHeight / 2 - previousCenterY * cropState.scale;
+  clampCropPosition();
+  updateZoomSlider();
+  updateCropImage();
+}
+
 function setupCropper() {
   cropState.viewportWidth = cropViewport.clientWidth;
   cropState.viewportHeight = cropViewport.clientHeight;
-  cropState.naturalWidth = cropImage.naturalWidth;
-  cropState.naturalHeight = cropImage.naturalHeight;
+  cropState.baseWidth = cropImage.naturalWidth;
+  cropState.baseHeight = cropImage.naturalHeight;
+  cropState.rotation = 0;
+  const rotated = getRotatedDimensions(cropState.baseWidth, cropState.baseHeight, cropState.rotation);
+  cropState.imageWidth = rotated.width;
+  cropState.imageHeight = rotated.height;
   cropState.minScale = Math.max(
-    cropState.viewportWidth / cropState.naturalWidth,
-    cropState.viewportHeight / cropState.naturalHeight
+    cropState.viewportWidth / cropState.imageWidth,
+    cropState.viewportHeight / cropState.imageHeight
   );
   cropState.scale = cropState.minScale;
   cropZoom.value = '1';
-  const scaledWidth = cropState.naturalWidth * cropState.scale;
-  const scaledHeight = cropState.naturalHeight * cropState.scale;
+  const scaledWidth = cropState.imageWidth * cropState.scale;
+  const scaledHeight = cropState.imageHeight * cropState.scale;
   cropState.x = (cropState.viewportWidth - scaledWidth) / 2;
   cropState.y = (cropState.viewportHeight - scaledHeight) / 2;
   clampCropPosition();
@@ -211,14 +248,46 @@ function openCropEditor(dataUrl) {
   stopStream();
   cropImage.onload = () => {
     setupCropper();
-    setStatus('Ajusta el encuadre de la foto y pulsa “Usar recorte”.');
+    setStatus('Ajusta el encuadre, usa pellizco para zoom y rota si hace falta.');
     syncCaptureButtons();
   };
   cropImage.src = dataUrl;
 }
 
+function drawRotatedSource(ctx, image, rotation, width, height) {
+  if (rotation === 0) {
+    ctx.drawImage(image, 0, 0, width, height);
+    return;
+  }
+
+  if (rotation === 90) {
+    ctx.translate(height, 0);
+    ctx.rotate(Math.PI / 2);
+    ctx.drawImage(image, 0, 0, width, height);
+    return;
+  }
+
+  if (rotation === 180) {
+    ctx.translate(width, height);
+    ctx.rotate(Math.PI);
+    ctx.drawImage(image, 0, 0, width, height);
+    return;
+  }
+
+  ctx.translate(0, width);
+  ctx.rotate(-Math.PI / 2);
+  ctx.drawImage(image, 0, 0, width, height);
+}
+
 function applyCrop() {
   if (!cropImage.src) return;
+  const rotatedCanvas = document.createElement('canvas');
+  const rotatedCtx = rotatedCanvas.getContext('2d');
+  const rotated = getRotatedDimensions(cropState.baseWidth, cropState.baseHeight, cropState.rotation);
+  rotatedCanvas.width = rotated.width;
+  rotatedCanvas.height = rotated.height;
+  drawRotatedSource(rotatedCtx, cropImage, cropState.rotation, cropState.baseWidth, cropState.baseHeight);
+
   const outputWidth = 1200;
   const outputHeight = 1500;
   captureCanvas.width = outputWidth;
@@ -228,7 +297,7 @@ function applyCrop() {
   const sy = -cropState.y / cropState.scale;
   const sw = cropState.viewportWidth / cropState.scale;
   const sh = cropState.viewportHeight / cropState.scale;
-  ctx.drawImage(cropImage, sx, sy, sw, sh, 0, 0, outputWidth, outputHeight);
+  ctx.drawImage(rotatedCanvas, sx, sy, sw, sh, 0, 0, outputWidth, outputHeight);
   capturedDataUrl = captureCanvas.toDataURL('image/jpeg', 0.95);
   cropEditor.classList.add('hidden');
   cameraWrap.classList.remove('hidden');
@@ -338,13 +407,6 @@ async function generateResults() {
   }
 }
 
-cropZoom.addEventListener('input', () => {
-  const zoomFactor = Number(cropZoom.value);
-  cropState.scale = cropState.minScale * zoomFactor;
-  clampCropPosition();
-  updateCropImage();
-});
-
 function getPoint(event) {
   if (event.touches?.[0]) {
     return { x: event.touches[0].clientX, y: event.touches[0].clientY };
@@ -352,8 +414,41 @@ function getPoint(event) {
   return { x: event.clientX, y: event.clientY };
 }
 
+function setScaleFromZoomFactor(zoomFactor, anchorX = cropState.viewportWidth / 2, anchorY = cropState.viewportHeight / 2) {
+  const clampedZoomFactor = Math.min(3, Math.max(1, zoomFactor));
+  const nextScale = cropState.minScale * clampedZoomFactor;
+  const imageAnchorX = (anchorX - cropState.x) / cropState.scale;
+  const imageAnchorY = (anchorY - cropState.y) / cropState.scale;
+  cropState.scale = nextScale;
+  cropState.x = anchorX - imageAnchorX * cropState.scale;
+  cropState.y = anchorY - imageAnchorY * cropState.scale;
+  clampCropPosition();
+  updateZoomSlider();
+  updateCropImage();
+}
+
+cropZoom.addEventListener('input', () => {
+  setScaleFromZoomFactor(Number(cropZoom.value));
+});
+
+function getDistance(touchA, touchB) {
+  const dx = touchA.clientX - touchB.clientX;
+  const dy = touchA.clientY - touchB.clientY;
+  return Math.hypot(dx, dy);
+}
+
+function getMidpoint(touchA, touchB) {
+  return {
+    x: (touchA.clientX + touchB.clientX) / 2,
+    y: (touchA.clientY + touchB.clientY) / 2
+  };
+}
+
 function startDrag(event) {
   if (cropEditor.classList.contains('hidden')) return;
+
+  if (event.pointerType === 'touch') return;
+
   const point = getPoint(event);
   dragState = {
     startX: point.x,
@@ -381,11 +476,77 @@ cropViewport.addEventListener('pointerdown', startDrag);
 window.addEventListener('pointermove', moveDrag);
 window.addEventListener('pointerup', endDrag);
 window.addEventListener('pointercancel', endDrag);
+
+cropViewport.addEventListener('touchstart', (event) => {
+  if (cropEditor.classList.contains('hidden')) return;
+  if (event.touches.length === 2) {
+    const midpoint = getMidpoint(event.touches[0], event.touches[1]);
+    pinchState = {
+      startDistance: getDistance(event.touches[0], event.touches[1]),
+      startZoomFactor: cropState.scale / cropState.minScale,
+      midpoint
+    };
+    dragState = null;
+    return;
+  }
+
+  if (event.touches.length === 1) {
+    const point = getPoint(event);
+    dragState = {
+      startX: point.x,
+      startY: point.y,
+      originX: cropState.x,
+      originY: cropState.y
+    };
+  }
+}, { passive: false });
+
+cropViewport.addEventListener('touchmove', (event) => {
+  if (pinchState && event.touches.length === 2) {
+    event.preventDefault();
+    const distance = getDistance(event.touches[0], event.touches[1]);
+    const midpoint = getMidpoint(event.touches[0], event.touches[1]);
+    pinchState.midpoint = midpoint;
+    setScaleFromZoomFactor((distance / pinchState.startDistance) * pinchState.startZoomFactor, midpoint.x - cropViewport.getBoundingClientRect().left, midpoint.y - cropViewport.getBoundingClientRect().top);
+    return;
+  }
+
+  if (dragState && event.touches.length === 1) {
+    event.preventDefault();
+    const point = getPoint(event);
+    cropState.x = dragState.originX + (point.x - dragState.startX);
+    cropState.y = dragState.originY + (point.y - dragState.startY);
+    clampCropPosition();
+    updateCropImage();
+  }
+}, { passive: false });
+
+cropViewport.addEventListener('touchend', (event) => {
+  if (event.touches.length < 2) pinchState = null;
+  if (event.touches.length === 0) dragState = null;
+}, { passive: true });
+
+cropViewport.addEventListener('touchcancel', () => {
+  pinchState = null;
+  dragState = null;
+}, { passive: true });
+
+rotateCropBtn.addEventListener('click', () => {
+  cropState.rotation = (cropState.rotation + 90) % 360;
+  const rotated = getRotatedDimensions(cropState.baseWidth, cropState.baseHeight, cropState.rotation);
+  cropState.imageWidth = rotated.width;
+  cropState.imageHeight = rotated.height;
+  fitCropToViewport();
+  setStatus('Foto rotada. Ajusta el encuadre si hace falta.');
+});
+
 applyCropBtn.addEventListener('click', applyCrop);
 cancelCropBtn.addEventListener('click', () => {
   cropEditor.classList.add('hidden');
   cropImage.src = '';
   cropSourceDataUrl = '';
+  pinchState = null;
+  dragState = null;
   cameraWrap.classList.add('hidden');
   setStatus('Carga otra foto desde la galería o usa la cámara.');
   syncCaptureButtons();
