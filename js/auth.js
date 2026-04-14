@@ -4,9 +4,9 @@ let currentUser = null;
 
 // Firebase config — must be filled with your project values
 const firebaseConfig = {
-  apiKey: 'PLACEHOLDER_FIREBASE_API_KEY',
-  authDomain: 'PLACEHOLDER_FIREBASE_AUTH_DOMAIN',
-  projectId: 'PLACEHOLDER_FIREBASE_PROJECT_ID'
+  apiKey: 'AIzaSyABhZx47LD_YXHfFZjf32bJx1rLGNqpLP0',
+  authDomain: 'gen-lang-client-0078028208.firebaseapp.com',
+  projectId: 'gen-lang-client-0078028208'
 };
 
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
