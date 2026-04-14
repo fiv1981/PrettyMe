@@ -538,6 +538,7 @@ async function generateResults() {
     return;
   }
 
+  regenerateBtn.textContent = 'Generar más';
   goToStep(3);
   const startIndex = resultsGrid.children.length;
   generateBtn.disabled = true;
@@ -564,26 +565,16 @@ async function generateResults() {
     setStatus('¡Listo! Toca una imagen para verla en grande.', 'success');
   } catch (error) {
     console.error(error);
+    // Remove any leftover placeholders from this batch
+    const placeholders = resultsGrid.querySelectorAll('.result-placeholder');
+    placeholders.forEach((el) => el.remove());
     const message = String(error.message || 'Error desconocido');
     if (message.includes('RESOURCE_EXHAUSTED') || message.includes('quota') || message.includes('429')) {
-      resultsGrid.innerHTML = `
-        <article class="empty-state">
-          <strong>La generación no está disponible ahora mismo</strong>
-          <span>La API de imagen ha respondido que no hay cuota disponible.</span>
-          <span>Prueba más tarde o cambia a una clave con cuota activa.</span>
-        </article>
-      `;
-      setStatus('Cuota no disponible ahora mismo.', 'warning');
+      setStatus('Cuota no disponible ahora mismo. Prueba más tarde.', 'warning');
     } else {
-      resultsGrid.innerHTML = `
-        <article class="empty-state">
-          <strong>No he podido generar las fotos</strong>
-          <span>Algo ha fallado al hablar con el motor de imagen.</span>
-          <span>Prueba otra vez en un momento.</span>
-        </article>
-      `;
-      setStatus('No he podido generar las fotos.', 'error');
+      setStatus('No he podido generar las fotos. Pulsa Reintentar.', 'error');
     }
+    regenerateBtn.textContent = 'Reintentar';
   } finally {
     generateBtn.disabled = false;
     regenerateBtn.disabled = false;
