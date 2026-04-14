@@ -31,9 +31,21 @@
           <span class="dot" data-dot="2"></span>
           <span class="dot" data-dot="3"></span>
         </div>
-        <button id="authBtn" class="btn btn-icon" aria-label="Cuenta">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </button>
+        <div class="auth-btn-wrap">
+          <button id="authBtn" class="btn btn-icon" aria-label="Cuenta">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
+          <div id="authDropdown" class="auth-dropdown hidden">
+            <div id="authUserInfo" class="auth-user-info">
+              <img id="authAvatar" class="auth-avatar-img" alt="" />
+              <div>
+                <strong id="authDisplayName"></strong>
+                <small id="authEmail2"></small>
+              </div>
+            </div>
+            <button id="authSignOut" class="btn btn-secondary">Cerrar sesión</button>
+          </div>
+        </div>
       </div>
     </div>
   </header>
@@ -67,18 +79,6 @@
         <p id="authError" class="auth-error hidden"></p>
       </form>
     </div>
-  </div>
-
-  <!-- Auth Dropdown -->
-  <div id="authDropdown" class="auth-dropdown hidden">
-    <div id="authUserInfo" class="auth-user-info">
-      <img id="authAvatar" class="auth-avatar-img" alt="" />
-      <div>
-        <strong id="authDisplayName"></strong>
-        <small id="authEmail2"></small>
-      </div>
-    </div>
-    <button id="authSignOut" class="btn btn-secondary">Cerrar sesión</button>
   </div>
 
   <!-- Gallery Panel -->

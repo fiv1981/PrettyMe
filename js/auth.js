@@ -18,6 +18,9 @@ firebase.auth().onAuthStateChanged((user) => {
   document.dispatchEvent(new CustomEvent('prettyme:authchange', { detail: user }));
 });
 
+// Handle redirect result (fallback from signInWithRedirect on mobile)
+firebase.auth().getRedirectResult().catch(() => {});
+
 export function getCurrentUser() {
   return currentUser;
 }
@@ -39,12 +42,28 @@ export function onAuthChange(callback) {
 
 export async function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
-  await firebase.auth().signInWithPopup(provider);
+  try {
+    await firebase.auth().signInWithPopup(provider);
+  } catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+      await firebase.auth().signInWithRedirect(provider);
+    } else {
+      throw e;
+    }
+  }
 }
 
 export async function signInWithApple() {
   const provider = new firebase.auth.OAuthProvider('apple.com');
-  await firebase.auth().signInWithPopup(provider);
+  try {
+    await firebase.auth().signInWithPopup(provider);
+  } catch (e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+      await firebase.auth().signInWithRedirect(provider);
+    } else {
+      throw e;
+    }
+  }
 }
 
 export async function signInWithEmail(email, password) {

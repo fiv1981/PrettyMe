@@ -796,15 +796,21 @@ textarea::placeholder {
   gap: 8px;
 }
 
+.auth-btn-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .btn-icon {
   width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  background: var(--secondary-bg);
   border: 0;
-  color: var(--text-secondary);
+  color: var(--text);
   border-radius: 50%;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
