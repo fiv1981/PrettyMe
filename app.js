@@ -1,18 +1,19 @@
 const styles = [
-  { id: 'travel', label: 'Viaje icónico', prompt: 'luxury travel portrait in a famous cinematic destination, flattering face, elegant styling, premium lighting', wardrobe: 'Use casual stylish clothing by default, elegant but relaxed, adapted naturally to the travel destination and weather, unless the user asks for something else in extra details.' },
-  { id: 'studio', label: 'Estudio premium', prompt: 'studio portrait for social profile, ultra flattering beauty lighting, premium editorial look, perfect skin, natural realism', wardrobe: 'Use casual flattering clothing by default, modern and polished but not formal, unless the user asks for something else in extra details.' },
-  { id: 'beach', label: 'Playa chic', prompt: 'beautiful beach portrait, golden hour, flattering pose, premium fashion vibe, photorealistic', wardrobe: 'Use beach-appropriate clothing by default, such as tasteful swimwear, bikini, swimsuit, linen clothing, pareo, beach dress or elegant beachwear, always matching the seaside scene naturally, unless the user asks for something else in extra details.' },
-  { id: 'executive', label: 'Profesional top', prompt: 'confident professional portrait, linkedin style but glamorous, luxury office background, polished and photorealistic', wardrobe: 'Use a professional polished look by default, suitable for a top executive portrait, unless the user asks for something else in extra details.' },
-  { id: 'street', label: 'Street fashion', prompt: 'stylish street fashion portrait in a trendy city, flattering angles, premium photography, photorealistic', wardrobe: 'Use casual street-style clothing by default, fashionable and natural, matching the urban scene, unless the user asks for something else in extra details.' },
-  { id: 'editorial', label: 'Editorial glam', prompt: 'high end editorial beauty portrait, cinematic light, luxury beauty campaign, realistic facial identity preserved', wardrobe: 'Use casual but very flattering editorial styling by default, sophisticated without looking formal officewear, unless the user asks for something else in extra details.' },
-  { id: 'cafe', label: 'Café europeo', prompt: 'beautiful portrait in an elegant european cafe terrace, flattering natural pose, premium lifestyle photography', wardrobe: 'Use casual chic clothing by default, natural, attractive and appropriate for an elegant European café terrace, unless the user asks for something else in extra details.' },
-  { id: 'night', label: 'Noche exclusiva', prompt: 'night city portrait with luxury vibe, flattering makeup and lighting, premium social media profile image', wardrobe: 'Use casual night-out clothing by default, attractive and scene-appropriate, more social than formal, unless the user asks for something else in extra details.' }
+  { id: 'travel', label: 'Viaje icónico', emoji: '✈️', prompt: 'luxury travel portrait in a famous cinematic destination, flattering face, elegant styling, premium lighting', wardrobe: 'Use casual stylish clothing by default, elegant but relaxed, adapted naturally to the travel destination and weather, unless the user asks for something else in extra details.' },
+  { id: 'studio', label: 'Estudio premium', emoji: '📸', prompt: 'studio portrait for social profile, ultra flattering beauty lighting, premium editorial look, perfect skin, natural realism', wardrobe: 'Use casual flattering clothing by default, modern and polished but not formal, unless the user asks for something else in extra details.' },
+  { id: 'beach', label: 'Playa chic', emoji: '🏖️', prompt: 'beautiful beach portrait, golden hour, flattering pose, premium fashion vibe, photorealistic', wardrobe: 'Use beach-appropriate clothing by default, such as tasteful swimwear, bikini, swimsuit, linen clothing, pareo, beach dress or elegant beachwear, always matching the seaside scene naturally, unless the user asks for something else in extra details.' },
+  { id: 'executive', label: 'Profesional top', emoji: '💼', prompt: 'confident professional portrait, linkedin style but glamorous, luxury office background, polished and photorealistic', wardrobe: 'Use a professional polished look by default, suitable for a top executive portrait, unless the user asks for something else in extra details.' },
+  { id: 'street', label: 'Street fashion', emoji: '🏙️', prompt: 'stylish street fashion portrait in a trendy city, flattering angles, premium photography, photorealistic', wardrobe: 'Use casual street-style clothing by default, fashionable and natural, matching the urban scene, unless the user asks for something else in extra details.' },
+  { id: 'editorial', label: 'Editorial glam', emoji: '✨', prompt: 'high end editorial beauty portrait, cinematic light, luxury beauty campaign, realistic facial identity preserved', wardrobe: 'Use casual but very flattering editorial styling by default, sophisticated without looking formal officewear, unless the user asks for something else in extra details.' },
+  { id: 'cafe', label: 'Café europeo', emoji: '☕', prompt: 'beautiful portrait in an elegant european cafe terrace, flattering natural pose, premium lifestyle photography', wardrobe: 'Use casual chic clothing by default, natural, attractive and appropriate for an elegant European café terrace, unless the user asks for something else in extra details.' },
+  { id: 'night', label: 'Noche exclusiva', emoji: '🌃', prompt: 'night city portrait with luxury vibe, flattering makeup and lighting, premium social media profile image', wardrobe: 'Use casual night-out clothing by default, attractive and scene-appropriate, more social than formal, unless the user asks for something else in extra details.' }
 ];
 
 const camera = document.getElementById('camera');
 const cameraWrap = document.getElementById('cameraWrap');
 const cameraOverlay = document.getElementById('cameraOverlay');
 const capturedImage = document.getElementById('capturedImage');
+const cameraPlaceholder = document.getElementById('cameraPlaceholder');
 const galleryInput = document.getElementById('galleryInput');
 const captureCanvas = document.getElementById('captureCanvas');
 const statusText = document.getElementById('statusText');
@@ -25,6 +26,10 @@ const uploadBtn = document.getElementById('uploadBtn');
 const captureBtn = document.getElementById('captureBtn');
 const retakeBtn = document.getElementById('retakeBtn');
 const generateBtn = document.getElementById('generateBtn');
+const nextStep1Btn = document.getElementById('nextStep1Btn');
+const backStep2Btn = document.getElementById('backStep2Btn');
+const backStep3Btn = document.getElementById('backStep3Btn');
+const regenerateBtn = document.getElementById('regenerateBtn');
 const cropEditor = document.getElementById('cropEditor');
 const cropViewport = document.getElementById('cropViewport');
 const cropImage = document.getElementById('cropImage');
@@ -35,6 +40,7 @@ const cancelCropBtn = document.getElementById('cancelCropBtn');
 
 let stream;
 let facingMode = 'user';
+let currentStep = 1;
 let resultCount = 2;
 let photoType = 'full';
 let capturedDataUrl = '';
@@ -57,11 +63,37 @@ const cropState = {
   rotation: 0
 };
 
+/* ===== Wizard navigation ===== */
+function goToStep(step) {
+  currentStep = step;
+  document.querySelectorAll('.step').forEach((el) => {
+    el.classList.toggle('active', Number(el.dataset.step) === step);
+  });
+  document.querySelectorAll('.dot').forEach((el) => {
+    const dotStep = Number(el.dataset.dot);
+    el.classList.toggle('active', dotStep === step);
+    el.classList.toggle('completed', dotStep < step);
+  });
+}
+
+nextStep1Btn.addEventListener('click', () => {
+  if (capturedDataUrl) goToStep(2);
+});
+
+backStep2Btn.addEventListener('click', () => goToStep(1));
+backStep3Btn.addEventListener('click', () => goToStep(2));
+
+regenerateBtn.addEventListener('click', () => {
+  goToStep(2);
+});
+
+/* ===== Status ===== */
 function setStatus(text, tone = '') {
   statusText.textContent = text;
   statusText.className = `status-text${tone ? ` is-${tone}` : ''}`;
 }
 
+/* ===== Camera ===== */
 function stopStream() {
   if (stream) {
     stream.getTracks().forEach((track) => track.stop());
@@ -82,11 +114,17 @@ function syncCaptureButtons() {
   captureBtn.classList.toggle('hidden', !hasStream || hasCapture || isCropping);
   retakeBtn.classList.toggle('hidden', !hasCapture || isCropping);
   uploadBtn.classList.toggle('hidden', isCropping);
+  nextStep1Btn.disabled = !hasCapture;
+  cameraPlaceholder.classList.toggle('hidden', hasStream || hasCapture || isCropping);
+  cameraWrap.classList.toggle('hidden', !hasStream && !hasCapture && !isCropping);
 }
 
 function renderStyles() {
   styleGrid.innerHTML = styles.map((style) => `
-    <button class="style-chip ${selectedStyles.has(style.id) ? 'active' : ''}" data-style="${style.id}">${style.label}</button>
+    <button class="style-chip ${selectedStyles.has(style.id) ? 'active' : ''}" data-style="${style.id}">
+      <span class="style-emoji">${style.emoji}</span>
+      ${style.label}
+    </button>
   `).join('');
   styleGrid.querySelectorAll('[data-style]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -125,7 +163,7 @@ async function startCamera(forceRestart = false) {
     capturedImage.classList.add('hidden');
     camera.play?.().catch(() => {});
     updateCameraMirror();
-    setStatus('Cámara lista. Hazte un selfie bonito ✨');
+    setStatus('Camara lista. Hazte un selfie bonito ✨');
     syncCaptureButtons();
     return;
   }
@@ -144,7 +182,7 @@ async function startCamera(forceRestart = false) {
   cameraOverlay.classList.remove('hidden');
   capturedImage.classList.add('hidden');
   updateCameraMirror();
-  setStatus('Cámara lista. Hazte un selfie bonito ✨');
+  setStatus('Camara lista. Hazte un selfie bonito ✨');
   syncCaptureButtons();
 }
 
@@ -162,7 +200,7 @@ function capturePhoto() {
   camera.classList.add('hidden');
   cameraOverlay.classList.add('hidden');
   cropEditor.classList.add('hidden');
-  setStatus('Selfie capturado. Ya puedes generar resultados.', 'success');
+  setStatus('Selfie capturado. Pulsa Siguiente para continuar.', 'success');
   syncCaptureButtons();
 }
 
@@ -187,11 +225,12 @@ function resetCapture() {
     camera.classList.add('hidden');
     cameraOverlay.classList.add('hidden');
     cameraWrap.classList.add('hidden');
-    setStatus('Puedes hacerte otro selfie o subir una foto desde la galería.');
+    setStatus('Abre la camara o sube una foto desde la galeria.');
   }
   syncCaptureButtons();
 }
 
+/* ===== Crop editor ===== */
 function getRotatedDimensions(width, height, rotation) {
   const quarterTurns = ((rotation % 360) + 360) % 360;
   return quarterTurns === 90 || quarterTurns === 270
@@ -335,7 +374,7 @@ function applyCrop() {
   cameraWrap.classList.remove('hidden');
   capturedImage.src = capturedDataUrl;
   capturedImage.classList.remove('hidden');
-  setStatus('Foto recortada y lista para generar resultados.', 'success');
+  setStatus('Foto recortada. Pulsa Siguiente para continuar.', 'success');
   syncCaptureButtons();
 }
 
@@ -348,6 +387,7 @@ function loadFromGallery(file) {
   reader.readAsDataURL(file);
 }
 
+/* ===== Generation ===== */
 function buildPrompt(style, extra) {
   const framing = photoType === 'portrait'
     ? 'Use a bust or close portrait framing, suitable for a profile picture.'
@@ -394,10 +434,12 @@ async function generateResults() {
     return;
   }
 
+  goToStep(3);
   const hadResults = resultsGrid.children.length > 0;
   if (!hadResults) resultsGrid.innerHTML = '';
   setStatus('Generando tus fotos… esto puede tardar un poco.', '');
   generateBtn.disabled = true;
+  regenerateBtn.disabled = true;
 
   try {
     const [header, data] = capturedDataUrl.split(',');
@@ -406,24 +448,24 @@ async function generateResults() {
     const queue = Array.from({ length: resultCount }, (_, i) => selected[i % selected.length]);
 
     for (let i = 0; i < queue.length; i += 1) {
-      setStatus(`⏳ Generando imagen ${i + 1} de ${queue.length}…`);
+      setStatus(`Generando imagen ${i + 1} de ${queue.length}…`);
       const result = await generateOne(queue[i], data, mimeType, extraPrompt.value.trim());
       addResultCard({ imageUrl: result.imageUrl, styleLabel: queue[i].label }, i);
     }
 
-    setStatus('¡Listo! Ya puedes descargar tus fotos en máxima calidad.', 'success');
+    setStatus('Listo! Descarga las que mas te gusten.', 'success');
   } catch (error) {
     console.error(error);
     const message = String(error.message || 'Error desconocido');
     if (message.includes('RESOURCE_EXHAUSTED') || message.includes('quota') || message.includes('429')) {
       if (!resultsGrid.children.length) resultsGrid.innerHTML = `
         <article class="empty-state">
-          <strong>La generación no está disponible ahora mismo</strong>
-          <span>La API de imagen ha respondido que no hay cuota disponible en este momento.</span>
-          <span>Puedes volver a intentarlo más tarde o cambiar a una clave/proyecto con cuota activa.</span>
+          <strong>La generacion no esta disponible ahora mismo</strong>
+          <span>La API de imagen ha respondido que no hay cuota disponible.</span>
+          <span>Prueba mas tarde o cambia a una clave con cuota activa.</span>
         </article>
       `;
-      setStatus('La cuota o el servicio de generación no está disponible ahora mismo.', 'warning');
+      setStatus('Cuota no disponible ahora mismo.', 'warning');
     } else {
       if (!resultsGrid.children.length) resultsGrid.innerHTML = `
         <article class="empty-state">
@@ -432,13 +474,15 @@ async function generateResults() {
           <span>Prueba otra vez en un momento.</span>
         </article>
       `;
-      setStatus('No he podido generar las fotos ahora mismo.', 'error');
+      setStatus('No he podido generar las fotos.', 'error');
     }
   } finally {
     generateBtn.disabled = false;
+    regenerateBtn.disabled = false;
   }
 }
 
+/* ===== Crop touch/pointer handlers ===== */
 function getPoint(event) {
   if (event.touches?.[0]) {
     return { x: event.touches[0].clientX, y: event.touches[0].clientY };
@@ -478,9 +522,7 @@ function getMidpoint(touchA, touchB) {
 
 function startDrag(event) {
   if (cropEditor.classList.contains('hidden')) return;
-
   if (event.pointerType === 'touch') return;
-
   const point = getPoint(event);
   dragState = {
     startX: point.x,
@@ -521,7 +563,6 @@ cropViewport.addEventListener('touchstart', (event) => {
     dragState = null;
     return;
   }
-
   if (event.touches.length === 1) {
     const point = getPoint(event);
     dragState = {
@@ -542,7 +583,6 @@ cropViewport.addEventListener('touchmove', (event) => {
     setScaleFromZoomFactor((distance / pinchState.startDistance) * pinchState.startZoomFactor, midpoint.x - cropViewport.getBoundingClientRect().left, midpoint.y - cropViewport.getBoundingClientRect().top);
     return;
   }
-
   if (dragState && event.touches.length === 1) {
     event.preventDefault();
     const point = getPoint(event);
@@ -581,10 +621,11 @@ cancelCropBtn.addEventListener('click', () => {
   pinchState = null;
   dragState = null;
   cameraWrap.classList.add('hidden');
-  setStatus('Carga otra foto desde la galería o usa la cámara.');
+  setStatus('Carga otra foto desde la galeria o usa la camara.');
   syncCaptureButtons();
 });
 
+/* ===== Button wiring ===== */
 startCameraBtn.addEventListener('click', startCamera);
 switchCameraBtn.addEventListener('click', async () => {
   facingMode = facingMode === 'user' ? 'environment' : 'user';
@@ -596,9 +637,11 @@ captureBtn.addEventListener('click', capturePhoto);
 retakeBtn.addEventListener('click', resetCapture);
 generateBtn.addEventListener('click', generateResults);
 
+/* ===== Init ===== */
 renderStyles();
+goToStep(1);
 syncCaptureButtons();
-setStatus('Abre la cámara o sube una foto desde la galería para empezar.');
+setStatus('Abre la camara o sube una foto para empezar.');
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));

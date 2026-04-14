@@ -14,116 +14,133 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <main class="app-shell">
-    <section class="hero glass">
-      <div class="hero-copy">
-        <div class="brand-row">
-          <img src="icon.svg" alt="PrettyMe" class="brand-icon" />
-          <span class="brand-name">PrettyMe</span>
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <img src="icon.svg" alt="" class="brand-icon" />
+        <span class="brand-name">PrettyMe</span>
+      </div>
+      <div class="progress-dots">
+        <span class="dot" data-dot="1"></span>
+        <span class="dot" data-dot="2"></span>
+        <span class="dot" data-dot="3"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wizard">
+    <!-- Step 1: Selfie -->
+    <section class="step" data-step="1">
+      <div class="step-content">
+        <div class="step-header">
+          <h2 class="step-title">Sube un selfie</h2>
+          <p class="step-subtitle">Hazte una foto o sube una desde tu galería</p>
         </div>
-        <h1>Tu selfie convertido en fotos de perfil espectaculares</h1>
-        <p class="hero-text">Hazte un selfie desde la app y genera fotos tuyas espectaculares, en escenarios elegantes, profesionales, exóticos y muy sociales.</p>
+
+        <div class="camera-area">
+          <div id="cameraWrap" class="camera-wrap hidden">
+            <video id="camera" autoplay playsinline muted class="hidden"></video>
+            <img id="capturedImage" class="hidden" alt="Selfie capturado" />
+            <div id="cameraOverlay" class="camera-overlay hidden">Encuadra bien tu cara y deja algo de hombros</div>
+          </div>
+
+          <div id="cropEditor" class="crop-editor hidden">
+            <div id="cropViewport" class="crop-viewport">
+              <img id="cropImage" alt="Reencuadre" />
+              <div class="crop-frame"></div>
+            </div>
+            <div class="crop-toolbar">
+              <div class="crop-zoom-group">
+                <label class="crop-zoom-label" for="cropZoom">Zoom</label>
+                <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1" />
               </div>
-      <div class="hero-preview glass-soft">
-        <div class="preview-composition">
-          <div class="preview-story preview-story--selfie">SELFIE REAL</div>
-          <div class="preview-arrow">➜</div>
-          <div class="preview-collage">
-            <div class="preview-story preview-story--result preview-story--night">NOCHE</div>
-            <div class="preview-story preview-story--result preview-story--beach">PLAYA</div>
-            <div class="preview-story preview-story--result preview-story--pro">PRO</div>
+              <button id="rotateCropBtn" class="btn-ghost" type="button">Rotar 90°</button>
+            </div>
+            <div class="crop-actions">
+              <button id="cancelCropBtn" class="btn-ghost">Cancelar</button>
+              <button id="applyCropBtn" class="btn-primary">Usar recorte</button>
+            </div>
+          </div>
+
+          <div id="cameraPlaceholder" class="camera-placeholder">
+            <span class="placeholder-icon">📸</span>
+            <span class="placeholder-text">Tu selfie aparecerá aquí</span>
           </div>
         </div>
+
+        <input id="galleryInput" class="hidden" type="file" accept="image/*" />
+
+        <div class="camera-controls">
+          <button id="startCameraBtn" class="btn-primary">Abrir cámara</button>
+          <button id="captureBtn" class="btn-primary hidden">Hacer selfie</button>
+          <button id="switchCameraBtn" class="btn-ghost hidden">Cambiar cámara</button>
+          <button id="uploadBtn" class="btn-ghost">Subir desde galería</button>
+          <button id="retakeBtn" class="btn-ghost hidden">Repetir</button>
+        </div>
+      </div>
+
+      <div class="step-footer">
+        <p id="statusText" class="status-text">Abre la cámara o sube una foto para empezar</p>
+        <button id="nextStep1Btn" class="btn-primary btn-next" disabled>Siguiente</button>
       </div>
     </section>
 
-    <section class="workspace">
-      <section class="capture-panel glass">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Paso 1</p>
-            <h2>Sube un selfie</h2>
-          </div>
-          <button id="switchCameraBtn" class="ghost-btn">Cambiar cámara</button>
-        </div>
-        <div id="cameraWrap" class="camera-wrap hidden">
-          <video id="camera" autoplay playsinline muted class="hidden"></video>
-          <img id="capturedImage" class="hidden" alt="Selfie capturado" />
-          <div id="cameraOverlay" class="camera-overlay hidden">Encuadra bien tu cara y deja algo de hombros</div>
-        </div>
-        <div id="cropEditor" class="crop-editor hidden">
-          <div id="cropViewport" class="crop-viewport">
-            <img id="cropImage" alt="Reencuadre de galería" />
-            <div class="crop-frame"></div>
-          </div>
-          <div class="crop-toolbar">
-            <div class="crop-zoom-group">
-              <label class="crop-zoom-label" for="cropZoom">Zoom</label>
-              <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1" />
-            </div>
-            <button id="rotateCropBtn" class="ghost-btn crop-rotate-btn" type="button">Rotar 90°</button>
-          </div>
-          <div class="crop-actions">
-            <button id="cancelCropBtn" class="ghost-btn">Cancelar</button>
-            <button id="applyCropBtn" class="primary-btn">Usar recorte</button>
-          </div>
-        </div>
-        <input id="galleryInput" class="hidden" type="file" accept="image/*" />
-        <div class="capture-actions">
-          <button id="startCameraBtn" class="ghost-btn">Abrir cámara</button>
-          <button id="captureBtn" class="primary-btn">Hacer selfie</button>
-          <button id="retakeBtn" class="ghost-btn">Repetir</button>
-          <button id="uploadBtn" class="ghost-btn">Subir desde galería</button>
-        </div>
-      </section>
-
-      <section class="controls-panel glass">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow">Paso 2</p>
-            <h2>Elige el resultado</h2>
-          </div>
+    <!-- Step 2: Configurar -->
+    <section class="step" data-step="2">
+      <div class="step-content">
+        <div class="step-header">
+          <h2 class="step-title">Elige el resultado</h2>
+          <p class="step-subtitle">Selecciona estilos y ajusta las opciones</p>
         </div>
 
-        <div class="field-group">
-          <label for="resultCount">Número de imágenes</label>
-          <div class="segmented segmented--two" id="resultCount">
+        <div class="field">
+          <label class="field-label">Estilos</label>
+          <div class="style-grid" id="styleGrid"></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Número de imágenes</label>
+          <div class="segmented-control" id="resultCount">
             <button class="segment active" data-count="2">2</button>
             <button class="segment" data-count="4">4</button>
           </div>
         </div>
 
-        <div class="field-group">
-          <label>Estilos deseados</label>
-          <div class="style-grid" id="styleGrid"></div>
-        </div>
-
-        <div class="field-group">
-          <label>Tipo de foto</label>
-          <div class="segmented segmented--two" id="photoType">
+        <div class="field">
+          <label class="field-label">Tipo de foto</label>
+          <div class="segmented-control" id="photoType">
             <button class="segment active" data-photo-type="full">Cuerpo entero</button>
-            <button class="segment" data-photo-type="portrait">Primera persona</button>
+            <button class="segment" data-photo-type="portrait">Primer plano</button>
           </div>
         </div>
 
-        <div class="field-group">
-          <label for="extraPrompt">Detalles extra</label>
-          <textarea id="extraPrompt" placeholder="Ejemplo: luz dorada, estilo editorial, mirada confiada, fondo de ciudad elegante..."></textarea>
-        </div>
-
-        <button id="generateBtn" class="generate-btn primary-btn--xl">Generar fotos</button>
-        <p id="statusText" class="status-text">Lista para empezar.</p>
-      </section>
-    </section>
-
-    <section class="results-panel glass">
-      <div class="panel-head">
-        <div>
-          <p class="eyebrow">Paso 3</p>
-          <h2>Resultados</h2>
+        <div class="field">
+          <label class="field-label" for="extraPrompt">Detalles extra</label>
+          <textarea id="extraPrompt" placeholder="Ej: luz dorada, estilo editorial, mirada confiada..."></textarea>
         </div>
       </div>
-      <div id="resultsGrid" class="results-grid"></div>
+
+      <div class="step-footer">
+        <button id="backStep2Btn" class="btn-ghost">Atrás</button>
+        <button id="generateBtn" class="btn-primary btn-next">Generar fotos</button>
+      </div>
+    </section>
+
+    <!-- Step 3: Resultados -->
+    <section class="step" data-step="3">
+      <div class="step-content">
+        <div class="step-header">
+          <h2 class="step-title">Tus fotos</h2>
+          <p class="step-subtitle">Descarga las que más te gusten</p>
+        </div>
+
+        <div id="resultsGrid" class="results-grid"></div>
+      </div>
+
+      <div class="step-footer">
+        <button id="backStep3Btn" class="btn-ghost">Atrás</button>
+        <button id="regenerateBtn" class="btn-primary btn-next">Generar más</button>
+      </div>
     </section>
   </main>
 
