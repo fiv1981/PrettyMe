@@ -1,0 +1,12 @@
+name = "prettyme"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = "."
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "prettyme-images"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "prettyme-db"
+database_id = "PLACEHOLDER_RUN_wrangler_d1_create"

@@ -1,3 +1,7 @@
+import { getCurrentUser, onAuthChange, signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, signOut as firebaseSignOut } from './js/auth.js';
+import { openGallery, closeGallery } from './js/gallery.js';
+import { authenticatedFetch } from './js/api.js';
+
 const styles = [
   { id: 'travel', label: 'Viaje icónico', emoji: '✈️', prompt: 'luxury travel portrait in a famous cinematic destination, flattering face, elegant styling, premium lighting', wardrobe: 'Use casual stylish clothing by default, elegant but relaxed, adapted naturally to the travel destination and weather, unless the user asks for something else in extra details.' },
   { id: 'studio', label: 'Estudio premium', emoji: '📸', prompt: 'studio portrait for social profile, ultra flattering beauty lighting, premium editorial look, perfect skin, natural realism', wardrobe: 'Use casual flattering clothing by default, modern and polished but not formal, unless the user asks for something else in extra details.' },
@@ -451,7 +455,7 @@ function buildPrompt(style, extra) {
 }
 
 async function generateOne(style, imageBase64, mimeType, extra) {
-  const response = await fetch('/api/generate', {
+  const response = await authenticatedFetch('/api/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -460,7 +464,9 @@ async function generateOne(style, imageBase64, mimeType, extra) {
       mimeType,
       imageDataUrl: capturedDataUrl,
       style: style.label,
-      provider: generationProvider
+      provider: generationProvider,
+      orientation,
+      photoType
     })
   });
   if (!response.ok) {
@@ -746,3 +752,105 @@ setStatus('Abre la cámara o sube una foto para empezar.');
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
+
+/* ===== Auth & Gallery ===== */
+const authBtn = document.getElementById('authBtn');
+const authModal = document.getElementById('authModal');
+const authModalClose = document.getElementById('authModalClose');
+const authGoogle = document.getElementById('authGoogle');
+const authApple = document.getElementById('authApple');
+const authEmailToggle = document.getElementById('authEmailToggle');
+const authEmailForm = document.getElementById('authEmailForm');
+const authEmailSignIn = document.getElementById('authEmailSignIn');
+const authEmailSignUp = document.getElementById('authEmailSignUp');
+const authEmailBack = document.getElementById('authEmailBack');
+const authError = document.getElementById('authError');
+const authDropdown = document.getElementById('authDropdown');
+const authSignOut = document.getElementById('authSignOut');
+const galleryBtn = document.getElementById('galleryBtn');
+
+function showAuthError(msg) {
+  authError.textContent = msg;
+  authError.classList.remove('hidden');
+}
+
+function hideAuthError() {
+  authError.classList.add('hidden');
+  authError.textContent = '';
+}
+
+function updateAuthUI(user) {
+  if (user) {
+    authBtn.innerHTML = '';
+    authBtn.classList.add('has-avatar');
+    const img = document.createElement('img');
+    img.src = user.photoURL || '';
+    img.alt = '';
+    img.onerror = () => { authBtn.innerHTML = ''; authBtn.classList.remove('has-avatar'); };
+    authBtn.appendChild(img);
+  } else {
+    authBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    authBtn.classList.remove('has-avatar');
+  }
+}
+
+onAuthChange(updateAuthUI);
+
+authBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const user = getCurrentUser();
+  if (user) {
+    authDropdown.classList.toggle('hidden');
+  } else {
+    authModal.classList.remove('hidden');
+    authDropdown.classList.add('hidden');
+  }
+});
+
+authModalClose.addEventListener('click', () => authModal.classList.add('hidden'));
+authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
+
+authGoogle.addEventListener('click', async () => {
+  try { await signInWithGoogle(); authModal.classList.add('hidden'); hideAuthError(); }
+  catch (e) { showAuthError(e.message); }
+});
+
+authApple.addEventListener('click', async () => {
+  try { await signInWithApple(); authModal.classList.add('hidden'); hideAuthError(); }
+  catch (e) { showAuthError(e.message); }
+});
+
+authEmailToggle.addEventListener('click', () => {
+  authEmailForm.classList.remove('hidden');
+  document.querySelector('.auth-providers').classList.add('hidden');
+  hideAuthError();
+});
+
+authEmailBack.addEventListener('click', () => {
+  authEmailForm.classList.add('hidden');
+  document.querySelector('.auth-providers').classList.remove('hidden');
+  hideAuthError();
+});
+
+authEmailSignIn.addEventListener('click', async () => {
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPassword').value;
+  try { await signInWithEmail(email, password); authModal.classList.add('hidden'); hideAuthError(); }
+  catch (e) { showAuthError(e.message); }
+});
+
+authEmailSignUp.addEventListener('click', async () => {
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPassword').value;
+  try { await signUpWithEmail(email, password); authModal.classList.add('hidden'); hideAuthError(); }
+  catch (e) { showAuthError(e.message); }
+});
+
+authSignOut.addEventListener('click', () => {
+  firebaseSignOut();
+  authDropdown.classList.add('hidden');
+});
+
+document.addEventListener('click', () => authDropdown.classList.add('hidden'));
+
+galleryBtn.addEventListener('click', openGallery);
