@@ -767,6 +767,10 @@ const authEmailBack = document.getElementById('authEmailBack');
 const authError = document.getElementById('authError');
 const authDropdown = document.getElementById('authDropdown');
 const authSignOut = document.getElementById('authSignOut');
+const authUserInfo = document.getElementById('authUserInfo');
+const authAvatar = document.getElementById('authAvatar');
+const authDisplayName = document.getElementById('authDisplayName');
+const authEmail2 = document.getElementById('authEmail2');
 const galleryBtn = document.getElementById('galleryBtn');
 
 function showAuthError(msg) {
@@ -788,9 +792,14 @@ function updateAuthUI(user) {
     img.alt = '';
     img.onerror = () => { authBtn.innerHTML = ''; authBtn.classList.remove('has-avatar'); };
     authBtn.appendChild(img);
+    authUserInfo.classList.remove('hidden');
+    authAvatar.src = user.photoURL || '';
+    authDisplayName.textContent = user.displayName || '';
+    authEmail2.textContent = user.email || '';
   } else {
     authBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
     authBtn.classList.remove('has-avatar');
+    authUserInfo.classList.add('hidden');
   }
 }
 
@@ -812,12 +821,12 @@ authModal.addEventListener('click', (e) => { if (e.target === authModal) authMod
 
 authGoogle.addEventListener('click', async () => {
   try { await signInWithGoogle(); authModal.classList.add('hidden'); hideAuthError(); }
-  catch (e) { showAuthError(e.message); }
+  catch (e) { showAuthError(e.message || e.code || 'Error al conectar con Google'); }
 });
 
 authApple.addEventListener('click', async () => {
   try { await signInWithApple(); authModal.classList.add('hidden'); hideAuthError(); }
-  catch (e) { showAuthError(e.message); }
+  catch (e) { showAuthError(e.message || e.code || 'Error al conectar con Apple'); }
 });
 
 authEmailToggle.addEventListener('click', () => {
@@ -851,6 +860,9 @@ authSignOut.addEventListener('click', () => {
   authDropdown.classList.add('hidden');
 });
 
-document.addEventListener('click', () => authDropdown.classList.add('hidden'));
+galleryBtn.addEventListener('click', () => {
+  authDropdown.classList.add('hidden');
+  openGallery();
+});
 
-galleryBtn.addEventListener('click', openGallery);
+document.addEventListener('click', () => authDropdown.classList.add('hidden'));

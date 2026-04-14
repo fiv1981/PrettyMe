@@ -13,13 +13,19 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 
+// Check for redirect result on page load (for mobile fallback)
+firebase.auth().getRedirectResult().then((result) => {
+  if (result && result.user) {
+    console.log('Redirect sign-in successful:', result.user.email);
+  }
+}).catch((error) => {
+  console.warn('Redirect sign-in error:', error.code, error.message);
+});
+
 firebase.auth().onAuthStateChanged((user) => {
   currentUser = user;
   document.dispatchEvent(new CustomEvent('prettyme:authchange', { detail: user }));
 });
-
-// Handle redirect result (fallback from signInWithRedirect on mobile)
-firebase.auth().getRedirectResult().catch(() => {});
 
 export function getCurrentUser() {
   return currentUser;
@@ -42,10 +48,22 @@ export function onAuthChange(callback) {
 
 export async function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
+  // Try popup first, fall back to redirect on mobile/blockers
   try {
-    await firebase.auth().signInWithPopup(provider);
+    const result = await firebase.auth().signInWithPopup(provider);
+    return result;
   } catch (e) {
-    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+    // Redirect fallback for: popup blocked, closed by user on mobile, or COOP issues
+    if (
+      e.code === 'auth/popup-blocked' ||
+      e.code === 'auth/popup-closed-by-user' ||
+      e.code === 'auth/cancelled-popup-request' ||
+      e.code === 'auth/web-storage-unsupported' ||
+      e.code === 'auth/unauthorized-domain'
+    ) {
+      if (e.code === 'auth/unauthorized-domain') {
+        throw new Error('Dominio no autorizado. Añade este dominio en Firebase Console > Authentication > Settings > Authorized domains.');
+      }
       await firebase.auth().signInWithRedirect(provider);
     } else {
       throw e;
@@ -56,9 +74,15 @@ export async function signInWithGoogle() {
 export async function signInWithApple() {
   const provider = new firebase.auth.OAuthProvider('apple.com');
   try {
-    await firebase.auth().signInWithPopup(provider);
+    const result = await firebase.auth().signInWithPopup(provider);
+    return result;
   } catch (e) {
-    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+    if (
+      e.code === 'auth/popup-blocked' ||
+      e.code === 'auth/popup-closed-by-user' ||
+      e.code === 'auth/cancelled-popup-request' ||
+      e.code === 'auth/web-storage-unsupported'
+    ) {
       await firebase.auth().signInWithRedirect(provider);
     } else {
       throw e;
