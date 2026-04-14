@@ -9,4 +9,4 @@ bucket_name = "prettyme-images"
 [[d1_databases]]
 binding = "DB"
 database_name = "prettyme-db"
-database_id = "PLACEHOLDER_RUN_wrangler_d1_create"
+database_id = "62f5ad9b-f925-40a3-8844-69141602083a"
