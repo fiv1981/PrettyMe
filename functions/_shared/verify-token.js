@@ -10,11 +10,17 @@ let cachedKeysAt = 0;
 
 async function fetchPublicKeys() {
   if (cachedKeys && (Date.now() - cachedKeysAt) < KEY_CACHE_TTL) return cachedKeys;
-  const resp = await fetch(KEYS_URL);
-  if (!resp.ok) throw new Error('Failed to fetch Firebase public keys');
-  cachedKeys = await resp.json();
-  cachedKeysAt = Date.now();
-  return cachedKeys;
+  try {
+    const resp = await fetch(KEYS_URL);
+    if (!resp.ok) throw new Error(`Failed to fetch Firebase public keys: HTTP ${resp.status}`);
+    cachedKeys = await resp.json();
+    cachedKeysAt = Date.now();
+    return cachedKeys;
+  } catch (e) {
+    // If we have stale cached keys, use them as fallback
+    if (cachedKeys) return cachedKeys;
+    throw e;
+  }
 }
 
 function base64UrlToUint8Array(b64url) {
@@ -78,6 +84,6 @@ export async function verifyFirebaseToken(token, projectId) {
 
     return { uid: payload.sub, email: payload.email || null };
   } catch (e) {
-    return { uid: null, debug: `verify error: ${e.message}` };
+    return { uid: null, debug: `verify error: ${e.message}`, stack: e.stack?.slice(0, 200) };
   }
 }
