@@ -184,18 +184,18 @@ button, textarea { font: inherit; color: inherit; }
   flex: 1;
   height: 54px;
   min-height: 54px;
-  background: var(--text);
-  color: var(--bg);
-  border: 0;
+  background: transparent;
+  color: var(--accent);
+  border: 3px solid var(--accent);
   border-radius: var(--radius);
   font-weight: 800;
   font-size: 1rem;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.15s;
+  transition: opacity 0.15s, transform 0.15s, background 0.15s;
 }
 
-.btn-cta:active { transform: scale(0.97); }
+.btn-cta:active { transform: scale(0.97); background: rgba(255, 47, 146, 0.08); }
 .btn-cta:disabled { opacity: 0.35; cursor: default; transform: none; }
 
 .btn-arrow {
@@ -240,24 +240,6 @@ button, textarea { font: inherit; color: inherit; }
   aspect-ratio: 16/9;
   border: 2px dashed rgba(255,255,255,0.18);
   background: transparent;
-}
-
-.camera-wrap--compact .camera-dashed-divider {
-  display: block;
-}
-
-.camera-wrap:not(.camera-wrap--compact) .camera-dashed-divider {
-  display: none;
-}
-
-.camera-dashed-divider {
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: 50%;
-  height: 0;
-  border-top: 2px dashed rgba(255,255,255,0.12);
-  pointer-events: none;
 }
 
 .camera-placeholder {
@@ -399,6 +381,13 @@ video.is-mirrored { transform: scaleX(-1); }
 
 .field--full textarea {
   width: 100%;
+}
+
+.field-note {
+  margin-top: 6px;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  opacity: 0.7;
 }
 
 .field-label {
