@@ -809,8 +809,16 @@ function getInitials(user) {
 }
 
 function updateAuthUI(user) {
+  const personSvg = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
   if (user) {
     authBtn.classList.add('signed-in');
+    if (user.photoURL) {
+      authBtn.innerHTML = `<img src="${user.photoURL}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover" />`;
+      authBtn.classList.add('has-avatar');
+    } else {
+      authBtn.innerHTML = personSvg;
+      authBtn.classList.remove('has-avatar');
+    }
     accountSignedIn.classList.remove('hidden');
     accountSignedOut.classList.add('hidden');
     accountInitials.textContent = getInitials(user);
@@ -825,7 +833,9 @@ function updateAuthUI(user) {
       accountInitials.classList.remove('hidden');
     }
   } else {
+    authBtn.innerHTML = personSvg;
     authBtn.classList.remove('signed-in');
+    authBtn.classList.remove('has-avatar');
     accountSignedIn.classList.add('hidden');
     accountSignedOut.classList.remove('hidden');
   }

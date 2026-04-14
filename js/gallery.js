@@ -116,13 +116,27 @@ async function loadGallery() {
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const resp = await fetch('/api/gallery?limit=50', { headers });
+
+    if (!resp.ok) {
+      const errorData = await resp.json().catch(() => ({}));
+      console.error('Gallery API error:', resp.status, errorData);
+      galleryGrid.innerHTML = `<div class="gallery-empty"><p>Error al cargar la galería (${resp.status})</p></div>`;
+      return;
+    }
+
     const data = await resp.json();
+
+    if (data.error) {
+      console.error('Gallery API returned error:', data.error);
+      galleryGrid.innerHTML = `<div class="gallery-empty"><p>${data.error}</p></div>`;
+      return;
+    }
 
     if (!data.images || data.images.length === 0) {
       galleryGrid.innerHTML = `
         <div class="gallery-empty">
-          <p>Aún no tienes fotos guardadas</p>
-          <p class="gallery-empty-hint">Las fotos que generes se guardarán aquí automáticamente.</p>
+          <p>Aún no tienes fotos</p>
+          <p class="gallery-empty-hint">Las fotos que generes aparecerán aquí automáticamente.</p>
         </div>
       `;
       return;

@@ -146,6 +146,11 @@ export async function onRequestPost(context) {
     let r2Key = null;
     if (uid) {
       r2Key = await persistImage({ env: context.env, uid, dataUrl: imageUrl, style, orientation, photoType });
+      if (!r2Key) {
+        console.warn('persistImage returned null — R2 or D1 binding may be missing');
+      }
+    } else {
+      console.warn('No uid — image will not be saved to gallery. Check FIREBASE_PROJECT_ID env var.');
     }
 
     const response = { imageUrl, provider: 'gemini-2.5-flash-image' };
