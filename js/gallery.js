@@ -113,7 +113,6 @@ async function loadGallery() {
 
   try {
     const token = await getIdToken();
-    console.log('[gallery] getIdToken result:', token ? `present (${token.slice(0,20)}...)` : 'null');
     const headers = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const resp = await fetch('/api/gallery?limit=50', { headers });

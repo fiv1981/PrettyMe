@@ -17,12 +17,12 @@ export async function onRequestGet(context) {
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
     if (!token || !FIREBASE_PROJECT_ID) {
-      return json({ error: 'Authentication required', debug: { hasToken: Boolean(token), hasProjectId: Boolean(FIREBASE_PROJECT_ID), projectId: FIREBASE_PROJECT_ID || '(empty)' } }, 401);
+      return json({ error: 'Authentication required' }, 401);
     }
 
     const decoded = await verifyFirebaseToken(token, FIREBASE_PROJECT_ID);
     if (!decoded.uid) {
-      return json({ error: 'Invalid token', debug: decoded.debug || 'unknown' }, 401);
+      return json({ error: 'Invalid token' }, 401);
     }
 
     const uid = decoded.uid;
