@@ -1,7 +1,6 @@
 // js/gallery.js — Gallery panel logic
 
-import { isSignedIn, onAuthChange } from './auth.js';
-import { apiGet } from './api.js';
+import { isSignedIn, onAuthChange, getIdToken } from './auth.js';
 
 const galleryPanel = document.getElementById('galleryPanel');
 const galleryGrid = document.getElementById('galleryGrid');
@@ -12,6 +11,9 @@ const lightboxDownload = document.getElementById('lightboxDownload');
 const lightbox = document.getElementById('lightbox');
 
 let loading = false;
+
+// Cache for image blob URLs (avoids re-fetching)
+const imageCache = new Map();
 
 export function openGallery() {
   galleryPanel.classList.add('is-open');
@@ -70,6 +72,25 @@ function formatDate(timestamp) {
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Fetch an image with auth header and return a blob URL
+async function fetchImageUrl(path) {
+  if (imageCache.has(path)) return imageCache.get(path);
+
+  try {
+    const token = await getIdToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const resp = await fetch(path, { headers });
+    if (!resp.ok) return path; // Fallback to direct URL
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    imageCache.set(path, url);
+    return url;
+  } catch {
+    return path; // Fallback to direct URL
+  }
+}
+
 async function loadGallery() {
   if (loading) return;
 
@@ -81,6 +102,7 @@ async function loadGallery() {
       </div>
     `;
     galleryGrid.querySelector('.gallery-login-btn')?.addEventListener('click', () => {
+      closeGallery();
       document.getElementById('authModal').classList.remove('hidden');
     });
     return;
@@ -90,7 +112,11 @@ async function loadGallery() {
   galleryGrid.innerHTML = '<div class="gallery-loading">Cargando…</div>';
 
   try {
-    const data = await apiGet('/api/gallery?limit=50');
+    const token = await getIdToken();
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const resp = await fetch('/api/gallery?limit=50', { headers });
+    const data = await resp.json();
 
     if (!data.images || data.images.length === 0) {
       galleryGrid.innerHTML = `
@@ -106,17 +132,31 @@ async function loadGallery() {
     for (const img of data.images) {
       const card = document.createElement('div');
       card.className = 'gallery-card';
+      // Show a placeholder while loading
       card.innerHTML = `
-        <img src="${img.url}" alt="${img.style || 'Foto'}" loading="lazy" />
+        <div class="gallery-card-loading" style="aspect-ratio:3/4;background:var(--card-hover);border-radius:var(--radius)"></div>
         <div class="gallery-card-info">
           <strong>${img.style || ''}</strong>
           <span>${formatDate(img.createdAt)}</span>
         </div>
       `;
-      card.querySelector('img').addEventListener('click', () => {
+
+      // Fetch image with auth and then set the src
+      const imageUrl = await fetchImageUrl(img.url);
+      const imgEl = document.createElement('img');
+      imgEl.src = imageUrl;
+      imgEl.alt = img.style || 'Foto';
+      imgEl.loading = 'lazy';
+      imgEl.addEventListener('click', () => {
         closeGallery();
-        openLightbox(img.url);
+        openLightbox(imageUrl);
       });
+      imgEl.style.aspectRatio = '3/4';
+      imgEl.style.objectFit = 'cover';
+      imgEl.style.cursor = 'pointer';
+
+      // Replace placeholder with actual image
+      card.querySelector('.gallery-card-loading')?.replaceWith(imgEl);
       galleryGrid.appendChild(card);
     }
   } catch {
@@ -132,5 +172,8 @@ if (galleryOverlay) galleryOverlay.addEventListener('click', closeGallery);
 
 // Reload gallery when auth changes
 onAuthChange(() => {
+  // Clear cached images on auth change
+  imageCache.forEach((url) => URL.revokeObjectURL(url));
+  imageCache.clear();
   if (galleryPanel.classList.contains('is-open')) loadGallery();
 });

@@ -1,4 +1,4 @@
-import { getCurrentUser, onAuthChange, signInWithGoogle, signInWithApple, signInWithEmail, signUpWithEmail, signOut as firebaseSignOut } from './js/auth.js';
+import { getCurrentUser, onAuthChange, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut as firebaseSignOut } from './js/auth.js';
 import { openGallery, closeGallery } from './js/gallery.js';
 import { authenticatedFetch } from './js/api.js';
 
@@ -753,25 +753,41 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
-/* ===== Auth & Gallery ===== */
+/* ===== Auth & Account Panel ===== */
 const authBtn = document.getElementById('authBtn');
 const authModal = document.getElementById('authModal');
 const authModalClose = document.getElementById('authModalClose');
 const authGoogle = document.getElementById('authGoogle');
-const authApple = document.getElementById('authApple');
 const authEmailToggle = document.getElementById('authEmailToggle');
 const authEmailForm = document.getElementById('authEmailForm');
 const authEmailSignIn = document.getElementById('authEmailSignIn');
 const authEmailSignUp = document.getElementById('authEmailSignUp');
 const authEmailBack = document.getElementById('authEmailBack');
 const authError = document.getElementById('authError');
-const authDropdown = document.getElementById('authDropdown');
-const authSignOut = document.getElementById('authSignOut');
-const authUserInfo = document.getElementById('authUserInfo');
-const authAvatar = document.getElementById('authAvatar');
-const authDisplayName = document.getElementById('authDisplayName');
-const authEmail2 = document.getElementById('authEmail2');
+const accountPanel = document.getElementById('accountPanel');
+const accountOverlay = document.getElementById('accountOverlay');
+const accountClose = document.getElementById('accountClose');
+const accountSignedIn = document.getElementById('accountSignedIn');
+const accountSignedOut = document.getElementById('accountSignedOut');
+const accountLoginBtn = document.getElementById('accountLoginBtn');
+const accountInitials = document.getElementById('accountInitials');
+const accountAvatar = document.getElementById('accountAvatar');
+const accountDisplayName = document.getElementById('accountDisplayName');
+const accountEmail = document.getElementById('accountEmail');
 const galleryBtn = document.getElementById('galleryBtn');
+const authSignOut = document.getElementById('authSignOut');
+
+function openAccountPanel() {
+  accountPanel.classList.add('is-open');
+  accountOverlay.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAccountPanel() {
+  accountPanel.classList.remove('is-open');
+  accountOverlay.classList.add('hidden');
+  document.body.style.overflow = '';
+}
 
 function showAuthError(msg) {
   authError.textContent = msg;
@@ -783,37 +799,55 @@ function hideAuthError() {
   authError.textContent = '';
 }
 
+function getInitials(user) {
+  if (user.displayName) {
+    const parts = user.displayName.trim().split(/\s+/);
+    return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+  }
+  if (user.email) return user.email[0].toUpperCase();
+  return '?';
+}
+
 function updateAuthUI(user) {
   if (user) {
-    authBtn.innerHTML = '';
-    authBtn.classList.add('has-avatar');
-    const img = document.createElement('img');
-    img.src = user.photoURL || '';
-    img.alt = '';
-    img.onerror = () => { authBtn.innerHTML = ''; authBtn.classList.remove('has-avatar'); };
-    authBtn.appendChild(img);
-    authUserInfo.classList.remove('hidden');
-    authAvatar.src = user.photoURL || '';
-    authDisplayName.textContent = user.displayName || '';
-    authEmail2.textContent = user.email || '';
+    authBtn.classList.add('signed-in');
+    accountSignedIn.classList.remove('hidden');
+    accountSignedOut.classList.add('hidden');
+    accountInitials.textContent = getInitials(user);
+    accountDisplayName.textContent = user.displayName || user.email || '';
+    accountEmail.textContent = user.email || '';
+    if (user.photoURL) {
+      accountAvatar.src = user.photoURL;
+      accountAvatar.classList.remove('hidden');
+      accountInitials.classList.add('hidden');
+    } else {
+      accountAvatar.classList.add('hidden');
+      accountInitials.classList.remove('hidden');
+    }
   } else {
-    authBtn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-    authBtn.classList.remove('has-avatar');
-    authUserInfo.classList.add('hidden');
+    authBtn.classList.remove('signed-in');
+    accountSignedIn.classList.add('hidden');
+    accountSignedOut.classList.remove('hidden');
   }
 }
 
 onAuthChange(updateAuthUI);
 
-authBtn.addEventListener('click', (e) => {
-  e.stopPropagation();
+authBtn.addEventListener('click', () => {
   const user = getCurrentUser();
   if (user) {
-    authDropdown.classList.toggle('hidden');
+    openAccountPanel();
   } else {
     authModal.classList.remove('hidden');
-    authDropdown.classList.add('hidden');
   }
+});
+
+accountClose.addEventListener('click', closeAccountPanel);
+accountOverlay.addEventListener('click', closeAccountPanel);
+
+accountLoginBtn.addEventListener('click', () => {
+  closeAccountPanel();
+  authModal.classList.remove('hidden');
 });
 
 authModalClose.addEventListener('click', () => authModal.classList.add('hidden'));
@@ -822,11 +856,6 @@ authModal.addEventListener('click', (e) => { if (e.target === authModal) authMod
 authGoogle.addEventListener('click', async () => {
   try { await signInWithGoogle(); authModal.classList.add('hidden'); hideAuthError(); }
   catch (e) { showAuthError(e.message || e.code || 'Error al conectar con Google'); }
-});
-
-authApple.addEventListener('click', async () => {
-  try { await signInWithApple(); authModal.classList.add('hidden'); hideAuthError(); }
-  catch (e) { showAuthError(e.message || e.code || 'Error al conectar con Apple'); }
 });
 
 authEmailToggle.addEventListener('click', () => {
@@ -857,12 +886,10 @@ authEmailSignUp.addEventListener('click', async () => {
 
 authSignOut.addEventListener('click', () => {
   firebaseSignOut();
-  authDropdown.classList.add('hidden');
+  closeAccountPanel();
 });
 
 galleryBtn.addEventListener('click', () => {
-  authDropdown.classList.add('hidden');
+  closeAccountPanel();
   openGallery();
 });
-
-document.addEventListener('click', () => authDropdown.classList.add('hidden'));

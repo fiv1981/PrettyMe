@@ -71,25 +71,6 @@ export async function signInWithGoogle() {
   }
 }
 
-export async function signInWithApple() {
-  const provider = new firebase.auth.OAuthProvider('apple.com');
-  try {
-    const result = await firebase.auth().signInWithPopup(provider);
-    return result;
-  } catch (e) {
-    if (
-      e.code === 'auth/popup-blocked' ||
-      e.code === 'auth/popup-closed-by-user' ||
-      e.code === 'auth/cancelled-popup-request' ||
-      e.code === 'auth/web-storage-unsupported'
-    ) {
-      await firebase.auth().signInWithRedirect(provider);
-    } else {
-      throw e;
-    }
-  }
-}
-
 export async function signInWithEmail(email, password) {
   await firebase.auth().signInWithEmailAndPassword(email, password);
 }

@@ -28,22 +28,9 @@
           <span class="dot" data-dot="2"></span>
           <span class="dot" data-dot="3"></span>
         </div>
-        <div class="auth-btn-wrap">
-          <button id="authBtn" class="btn btn-icon" aria-label="Cuenta">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </button>
-          <div id="authDropdown" class="auth-dropdown hidden">
-            <div id="authUserInfo" class="auth-user-info">
-              <img id="authAvatar" class="auth-avatar-img" alt="" />
-              <div>
-                <strong id="authDisplayName"></strong>
-                <small id="authEmail2"></small>
-              </div>
-            </div>
-            <button id="galleryBtn" class="btn btn-secondary btn-dropdown">Galería</button>
-            <button id="authSignOut" class="btn btn-secondary btn-dropdown">Cerrar sesión</button>
-          </div>
-        </div>
+        <button id="authBtn" class="btn btn-icon" aria-label="Cuenta">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </button>
       </div>
     </div>
   </header>
@@ -58,10 +45,6 @@
         <button id="authGoogle" class="btn btn-auth btn-auth--google">
           <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.997 8.997 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
           Continuar con Google
-        </button>
-        <button id="authApple" class="btn btn-auth btn-auth--apple">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-          Continuar con Apple
         </button>
         <button id="authEmailToggle" class="btn btn-auth btn-auth--email">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 7l-10 7L2 7"/></svg>
@@ -78,6 +61,41 @@
       </form>
     </div>
   </div>
+
+  <!-- Account Panel -->
+  <div id="accountOverlay" class="gallery-overlay hidden"></div>
+  <aside id="accountPanel" class="gallery-panel">
+    <div class="gallery-header">
+      <h2 class="gallery-title">Cuenta</h2>
+      <button id="accountClose" class="gallery-close">&times;</button>
+    </div>
+    <div id="accountContent" class="account-content">
+      <div id="accountSignedOut" class="account-section">
+        <p class="account-empty-text">Inicia sesión para guardar tus fotos</p>
+        <button id="accountLoginBtn" class="btn btn-primary">Iniciar sesión</button>
+      </div>
+      <div id="accountSignedIn" class="account-section hidden">
+        <div id="accountUserInfo" class="account-user-info">
+          <div id="accountAvatarWrap" class="account-avatar-wrap">
+            <span id="accountInitials" class="account-initials"></span>
+            <img id="accountAvatar" class="account-avatar-img hidden" alt="" />
+          </div>
+          <div class="account-user-text">
+            <strong id="accountDisplayName"></strong>
+            <small id="accountEmail"></small>
+          </div>
+        </div>
+        <button id="galleryBtn" class="btn btn-secondary account-action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          Galería
+        </button>
+        <button id="authSignOut" class="btn btn-secondary account-action-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+  </aside>
 
   <!-- Gallery Panel -->
   <div id="galleryOverlay" class="gallery-overlay hidden"></div>
