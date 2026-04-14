@@ -28,7 +28,7 @@ const retakeBtn = document.getElementById('retakeBtn');
 const generateBtn = document.getElementById('generateBtn');
 const nextStep1Btn = document.getElementById('nextStep1Btn');
 const backStep2Btn = document.getElementById('backStep2Btn');
-const backStep3Btn = document.getElementById('backStep3Btn');
+const forwardStep2Btn = document.getElementById('forwardStep2Btn');
 const restartBtn = document.getElementById('restartBtn');
 const regenerateBtn = document.getElementById('regenerateBtn');
 const cropEditor = document.getElementById('cropEditor');
@@ -48,6 +48,7 @@ let facingMode = 'user';
 let currentStep = 1;
 let resultCount = 2;
 let photoType = 'full';
+let orientation = 'vertical';
 let capturedDataUrl = '';
 let cropSourceDataUrl = '';
 let dragState = null;
@@ -79,6 +80,7 @@ function goToStep(step) {
     el.classList.toggle('active', dotStep === step);
     el.classList.toggle('completed', dotStep < step);
   });
+  forwardStep2Btn.classList.toggle('hidden', step !== 2 || resultsGrid.children.length === 0);
 }
 
 nextStep1Btn.addEventListener('click', () => {
@@ -86,7 +88,9 @@ nextStep1Btn.addEventListener('click', () => {
 });
 
 backStep2Btn.addEventListener('click', () => goToStep(1));
-backStep3Btn.addEventListener('click', () => goToStep(2));
+forwardStep2Btn.addEventListener('click', () => {
+  if (resultsGrid.children.length > 0) goToStep(3);
+});
 
 restartBtn.addEventListener('click', () => {
   resultsGrid.innerHTML = '';
@@ -147,6 +151,9 @@ function syncCaptureButtons() {
   nextStep1Btn.disabled = !hasCapture;
   cameraPlaceholder.classList.toggle('hidden', hasStream || hasCapture);
   cameraWrap.classList.toggle('hidden', isCropping);
+  if (hasStream || hasCapture) {
+    cameraWrap.classList.remove('camera-wrap--compact');
+  }
 }
 
 function renderStyles() {
@@ -183,9 +190,17 @@ document.querySelectorAll('[data-photo-type]').forEach((btn) => {
   });
 });
 
+document.querySelectorAll('[data-orientation]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    orientation = btn.dataset.orientation;
+    document.querySelectorAll('[data-orientation]').forEach((node) => node.classList.toggle('active', node === btn));
+  });
+});
+
 async function startCamera(forceRestart = false) {
   cropEditor.classList.add('hidden');
   cameraWrap.classList.remove('hidden');
+  cameraWrap.classList.remove('camera-wrap--compact');
 
   if (stream && !forceRestart) {
     camera.classList.remove('hidden');
@@ -228,6 +243,7 @@ function capturePhoto() {
   capturedImage.src = capturedDataUrl;
   capturedImage.classList.remove('hidden');
   camera.classList.add('hidden');
+  cameraWrap.classList.remove('camera-wrap--compact');
   cameraOverlay.classList.add('hidden');
   cropEditor.classList.add('hidden');
   setStatus('Selfie capturado. Pulsa Siguiente para continuar.', 'success');
@@ -245,6 +261,7 @@ function resetCapture() {
   cropEditor.classList.add('hidden');
   cropZoom.value = '1';
   cameraWrap.classList.remove('hidden');
+  cameraWrap.classList.add('camera-wrap--compact');
   if (stream) {
     camera.classList.remove('hidden');
     cameraOverlay.classList.remove('hidden');
@@ -401,6 +418,7 @@ function applyCrop() {
   capturedDataUrl = captureCanvas.toDataURL('image/jpeg', 0.95);
   cropEditor.classList.add('hidden');
   cameraWrap.classList.remove('hidden');
+  cameraWrap.classList.remove('camera-wrap--compact');
   capturedImage.src = capturedDataUrl;
   capturedImage.classList.remove('hidden');
   setStatus('Foto recortada. Pulsa Siguiente para continuar.', 'success');

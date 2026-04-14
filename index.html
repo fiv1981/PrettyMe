@@ -34,18 +34,18 @@
       <div class="step-content">
         <div class="step-header">
           <h2 class="step-title">Sube un selfie</h2>
-          <p class="step-subtitle">Hazte una foto o sube una desde tu galería</p>
         </div>
 
         <div class="camera-area">
-          <div id="cameraWrap" class="camera-wrap hidden">
+          <div id="cameraWrap" class="camera-wrap camera-wrap--compact hidden">
             <video id="camera" autoplay playsinline muted class="hidden"></video>
             <img id="capturedImage" class="hidden" alt="Selfie capturado" />
             <div id="cameraOverlay" class="camera-overlay hidden">Encuadra bien tu cara y deja algo de hombros</div>
             <div id="cameraPlaceholder" class="camera-placeholder">
               <span class="placeholder-icon">📸</span>
-              <span class="placeholder-text">Tu selfie aparecerá aquí</span>
+              <span class="placeholder-text">Hazte una foto o sube una desde tu galería</span>
             </div>
+            <div class="camera-dashed-divider"></div>
           </div>
 
           <div id="cropEditor" class="crop-editor hidden">
@@ -80,7 +80,7 @@
 
       <div class="step-footer">
         <p id="statusText" class="status-text">Abre la cámara o sube una foto para empezar</p>
-        <button id="nextStep1Btn" class="btn btn-primary btn-next" disabled>Siguiente</button>
+        <button id="nextStep1Btn" class="btn btn-cta btn-next" disabled>Siguiente</button>
       </div>
     </section>
 
@@ -89,7 +89,6 @@
       <div class="step-content">
         <div class="step-header">
           <h2 class="step-title">Elige el resultado</h2>
-          <p class="step-subtitle">Selecciona estilos y ajusta las opciones</p>
         </div>
 
         <div class="field">
@@ -114,14 +113,23 @@
         </div>
 
         <div class="field">
+          <label class="field-label">Orientación</label>
+          <div class="segmented-control" id="orientation">
+            <button class="segment active" data-orientation="vertical">Vertical</button>
+            <button class="segment" data-orientation="horizontal">Horizontal</button>
+          </div>
+        </div>
+
+        <div class="field field--full">
           <label class="field-label" for="extraPrompt">Detalles extra</label>
           <textarea id="extraPrompt" placeholder="Ej: luz dorada, estilo editorial, mirada confiada..."></textarea>
         </div>
       </div>
 
       <div class="step-footer">
-        <button id="backStep2Btn" class="btn btn-secondary">Atrás</button>
-        <button id="generateBtn" class="btn btn-primary btn-next">Generar fotos</button>
+        <button id="backStep2Btn" class="btn btn-arrow" aria-label="Atrás">&lsaquo;</button>
+        <button id="generateBtn" class="btn btn-cta btn-next">Generar fotos</button>
+        <button id="forwardStep2Btn" class="btn btn-arrow hidden" aria-label="Ver resultados">&rsaquo;</button>
       </div>
     </section>
 
@@ -137,9 +145,8 @@
       </div>
 
       <div class="step-footer">
-        <button id="backStep3Btn" class="btn btn-secondary">Atrás</button>
         <button id="restartBtn" class="btn btn-secondary">Volver a empezar</button>
-        <button id="regenerateBtn" class="btn btn-primary btn-next">Generar más</button>
+        <button id="regenerateBtn" class="btn btn-cta btn-next">Generar más</button>
       </div>
     </section>
   </main>
