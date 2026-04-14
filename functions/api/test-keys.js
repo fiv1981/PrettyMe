@@ -1,4 +1,4 @@
-const KEYS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@gserviceaccount.com';
+const KEYS_URL = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys';
 
 export async function onRequestGet(context) {
   try {

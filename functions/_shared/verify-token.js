@@ -2,7 +2,7 @@
  * Verify a Firebase ID token using Google's public X.509 keys.
  * Works in Cloudflare Workers/Pages Functions (no Node.js deps).
  */
-const KEYS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@gserviceaccount.com';
+const KEYS_URL = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys';
 const KEY_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 
 let cachedKeys = null;
