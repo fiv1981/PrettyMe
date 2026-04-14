@@ -22,14 +22,7 @@ export async function onRequestGet(context) {
 
     const decoded = await verifyFirebaseToken(token, FIREBASE_PROJECT_ID);
     if (!decoded) {
-      // Debug: try to identify why verification failed
-      let reason = 'unknown';
-      try {
-        const header = JSON.parse(atob(token.split('.')[0].replace(/-/g,'+').replace(/_/g,'/')));
-        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-        reason = `kid=${header.kid} iss=${payload.iss} aud=${payload.aud} exp=${payload.exp} now=${Math.floor(Date.now()/1000)}`;
-      } catch {}
-      return json({ error: 'Invalid token', reason }, 401);
+      return json({ error: 'Invalid token' }, 401);
     }
 
     const uid = decoded.uid;
