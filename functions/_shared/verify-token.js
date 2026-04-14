@@ -59,25 +59,25 @@ async function verifySignature(token, pemKey) {
 }
 
 export async function verifyFirebaseToken(token, projectId) {
-  if (!token) return null;
+  if (!token) return { uid: null, debug: 'no token' };
 
   try {
     const header = decodeJwtHeader(token);
     const payload = decodeJwtPayload(token);
     const keys = await fetchPublicKeys();
     const pem = keys[header.kid];
-    if (!pem) return null;
+    if (!pem) return { uid: null, debug: `no matching key for kid=${header.kid}, available=${Object.keys(keys).join(',')}` };
 
     const valid = await verifySignature(token, pem);
-    if (!valid) return null;
+    if (!valid) return { uid: null, debug: 'signature verification failed' };
 
     const now = Math.floor(Date.now() / 1000);
-    if (payload.exp < now) return null;
-    if (payload.iss !== `https://securetoken.google.com/${projectId}`) return null;
-    if (payload.aud !== projectId) return null;
+    if (payload.exp < now) return { uid: null, debug: `token expired (exp=${payload.exp}, now=${now})` };
+    if (payload.iss !== `https://securetoken.google.com/${projectId}`) return { uid: null, debug: `iss mismatch: got=${payload.iss}, expected=https://securetoken.google.com/${projectId}` };
+    if (payload.aud !== projectId) return { uid: null, debug: `aud mismatch: got=${payload.aud}, expected=${projectId}` };
 
     return { uid: payload.sub, email: payload.email || null };
-  } catch {
-    return null;
+  } catch (e) {
+    return { uid: null, debug: `verify error: ${e.message}` };
   }
 }

@@ -21,8 +21,8 @@ export async function onRequestGet(context) {
     }
 
     const decoded = await verifyFirebaseToken(token, FIREBASE_PROJECT_ID);
-    if (!decoded) {
-      return json({ error: 'Invalid token', debug: { projectId: FIREBASE_PROJECT_ID, tokenPrefix: token?.slice(0, 20) + '...' } }, 401);
+    if (!decoded.uid) {
+      return json({ error: 'Invalid token', debug: decoded.debug || 'unknown' }, 401);
     }
 
     const uid = decoded.uid;
