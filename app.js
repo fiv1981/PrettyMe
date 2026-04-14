@@ -29,6 +29,7 @@ const generateBtn = document.getElementById('generateBtn');
 const nextStep1Btn = document.getElementById('nextStep1Btn');
 const backStep2Btn = document.getElementById('backStep2Btn');
 const forwardStep2Btn = document.getElementById('forwardStep2Btn');
+const backStep3Btn = document.getElementById('backStep3Btn');
 const restartBtn = document.getElementById('restartBtn');
 const regenerateBtn = document.getElementById('regenerateBtn');
 const cropEditor = document.getElementById('cropEditor');
@@ -92,19 +93,24 @@ forwardStep2Btn.addEventListener('click', () => {
   if (resultsGrid.children.length > 0) goToStep(3);
 });
 
+backStep3Btn.addEventListener('click', () => goToStep(2));
+
 restartBtn.addEventListener('click', () => {
   resultsGrid.innerHTML = '';
   goToStep(1);
 });
 
 regenerateBtn.addEventListener('click', () => {
-  goToStep(2);
+  generateResults();
 });
 
 /* ===== Lightbox ===== */
 function openLightbox(imageUrl) {
   lightboxImage.src = imageUrl;
-  lightboxDownload.href = imageUrl;
+  lightboxDownload.onclick = (e) => {
+    e.preventDefault();
+    downloadAsJpg(imageUrl);
+  };
   lightbox.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -478,6 +484,34 @@ function addPlaceholderCard(styleLabel, index) {
   resultsGrid.appendChild(card);
 }
 
+function makeDownloadName() {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `PrettyMe_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+}
+
+function downloadAsJpg(imageUrl) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${makeDownloadName()}.jpg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, 'image/jpeg', 0.9);
+  };
+  img.src = imageUrl;
+}
+
 function replacePlaceholderWithResult(index, { imageUrl, styleLabel }) {
   const placeholder = resultsGrid.querySelector(`[data-placeholder-index="${index}"]`);
   if (!placeholder) return;
@@ -487,10 +521,14 @@ function replacePlaceholderWithResult(index, { imageUrl, styleLabel }) {
     <img src="${imageUrl}" alt="Resultado ${index + 1}" data-lightbox="${imageUrl}" />
     <strong>${styleLabel}</strong>
     <div class="result-actions">
-      <a class="download-btn" href="${imageUrl}" download="prettyme-${index + 1}.png">Descargar</a>
+      <a class="download-btn" href="#" data-download="${imageUrl}">Descargar</a>
     </div>
   `;
   card.querySelector('img').addEventListener('click', () => openLightbox(imageUrl));
+  card.querySelector('[data-download]').addEventListener('click', (e) => {
+    e.preventDefault();
+    downloadAsJpg(imageUrl);
+  });
   placeholder.replaceWith(card);
 }
 
@@ -501,7 +539,7 @@ async function generateResults() {
   }
 
   goToStep(3);
-  resultsGrid.innerHTML = '';
+  const startIndex = resultsGrid.children.length;
   generateBtn.disabled = true;
   regenerateBtn.disabled = true;
 
@@ -512,7 +550,7 @@ async function generateResults() {
     const queue = Array.from({ length: resultCount }, (_, i) => selected[i % selected.length]);
 
     for (let i = 0; i < queue.length; i += 1) {
-      addPlaceholderCard(queue[i].label, i);
+      addPlaceholderCard(queue[i].label, startIndex + i);
     }
 
     setStatus('Generando tus fotos… esto puede tardar un poco.', '');
@@ -520,7 +558,7 @@ async function generateResults() {
     for (let i = 0; i < queue.length; i += 1) {
       setStatus(`Generando imagen ${i + 1} de ${queue.length}…`);
       const result = await generateOne(queue[i], data, mimeType, extraPrompt.value.trim());
-      replacePlaceholderWithResult(i, { imageUrl: result.imageUrl, styleLabel: queue[i].label });
+      replacePlaceholderWithResult(startIndex + i, { imageUrl: result.imageUrl, styleLabel: queue[i].label });
     }
 
     setStatus('¡Listo! Toca una imagen para verla en grande.', 'success');
