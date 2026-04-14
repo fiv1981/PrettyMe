@@ -2,6 +2,9 @@ name = "prettyme"
 compatibility_date = "2024-12-01"
 pages_build_output_dir = "."
 
+[vars]
+FIREBASE_PROJECT_ID = "gen-lang-client-0078028208"
+
 [[r2_buckets]]
 binding = "IMAGES"
 bucket_name = "prettyme-images"
