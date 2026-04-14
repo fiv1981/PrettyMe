@@ -1,19 +1,18 @@
 // js/gallery.js — Gallery panel logic
 
 import { isSignedIn, onAuthChange, getIdToken } from './auth.js';
+import { openLightbox } from './lightbox.js';
 
 const galleryPanel = document.getElementById('galleryPanel');
 const galleryGrid = document.getElementById('galleryGrid');
 const galleryClose = document.getElementById('galleryClose');
 const galleryOverlay = document.getElementById('galleryOverlay');
-const lightboxImage = document.getElementById('lightboxImage');
-const lightboxDownload = document.getElementById('lightboxDownload');
-const lightbox = document.getElementById('lightbox');
 
 let loading = false;
 
 // Cache for image blob URLs (avoids re-fetching)
 const imageCache = new Map();
+let galleryImageUrls = [];
 
 export function openGallery() {
   galleryPanel.classList.add('is-open');
@@ -26,45 +25,6 @@ export function closeGallery() {
   galleryPanel.classList.remove('is-open');
   galleryOverlay.classList.add('hidden');
   document.body.style.overflow = '';
-}
-
-function makeDownloadName() {
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `PrettyMe_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-}
-
-function openLightbox(url) {
-  lightboxImage.src = url;
-  if (lightboxDownload) {
-    lightboxDownload.onclick = (e) => {
-      e.preventDefault();
-      downloadAsJpg(url);
-    };
-  }
-  lightbox.classList.remove('hidden');
-}
-
-function downloadAsJpg(imageUrl) {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${makeDownloadName()}.jpg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/jpeg', 0.9);
-  };
-  img.src = imageUrl;
 }
 
 function formatDate(timestamp) {
@@ -143,6 +103,7 @@ async function loadGallery() {
     }
 
     galleryGrid.innerHTML = '';
+    galleryImageUrls = [];
     for (const img of data.images) {
       const card = document.createElement('div');
       card.className = 'gallery-card';
@@ -157,13 +118,14 @@ async function loadGallery() {
 
       // Fetch image with auth and then set the src
       const imageUrl = await fetchImageUrl(img.url);
+      galleryImageUrls.push(imageUrl);
+      const clickIndex = galleryImageUrls.length - 1;
       const imgEl = document.createElement('img');
       imgEl.src = imageUrl;
       imgEl.alt = img.style || 'Foto';
       imgEl.loading = 'lazy';
       imgEl.addEventListener('click', () => {
-        closeGallery();
-        openLightbox(imageUrl);
+        openLightbox([...galleryImageUrls], clickIndex);
       });
       imgEl.style.aspectRatio = '3/4';
       imgEl.style.objectFit = 'cover';

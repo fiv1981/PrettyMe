@@ -1,5 +1,6 @@
 import { getCurrentUser, onAuthChange, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut as firebaseSignOut } from './js/auth.js';
 import { openGallery, closeGallery } from './js/gallery.js';
+import { openLightbox, closeLightbox, downloadAsJpg } from './js/lightbox.js';
 import { authenticatedFetch } from './js/api.js';
 
 const styles = [
@@ -43,10 +44,6 @@ const cropZoom = document.getElementById('cropZoom');
 const rotateCropBtn = document.getElementById('rotateCropBtn');
 const applyCropBtn = document.getElementById('applyCropBtn');
 const cancelCropBtn = document.getElementById('cancelCropBtn');
-const lightbox = document.getElementById('lightbox');
-const lightboxClose = document.getElementById('lightboxClose');
-const lightboxImage = document.getElementById('lightboxImage');
-const lightboxDownload = document.getElementById('lightboxDownload');
 
 let stream;
 let facingMode = 'user';
@@ -106,28 +103,6 @@ restartBtn.addEventListener('click', () => {
 
 regenerateBtn.addEventListener('click', () => {
   generateResults();
-});
-
-/* ===== Lightbox ===== */
-function openLightbox(imageUrl) {
-  lightboxImage.src = imageUrl;
-  lightboxDownload.onclick = (e) => {
-    e.preventDefault();
-    downloadAsJpg(imageUrl);
-  };
-  lightbox.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeLightbox() {
-  lightbox.classList.add('hidden');
-  lightboxImage.src = '';
-  document.body.style.overflow = '';
-}
-
-lightboxClose.addEventListener('click', closeLightbox);
-lightbox.addEventListener('click', (e) => {
-  if (e.target === lightbox) closeLightbox();
 });
 
 /* ===== Status ===== */
@@ -415,7 +390,7 @@ function applyCrop() {
   drawRotatedSource(rotatedCtx, cropImage, cropState.rotation, cropState.baseWidth, cropState.baseHeight);
 
   const outputWidth = 1200;
-  const outputHeight = 1500;
+  const outputHeight = 1600;
   captureCanvas.width = outputWidth;
   captureCanvas.height = outputHeight;
   const ctx = captureCanvas.getContext('2d');
@@ -490,34 +465,6 @@ function addPlaceholderCard(styleLabel, index) {
   resultsGrid.appendChild(card);
 }
 
-function makeDownloadName() {
-  const now = new Date();
-  const pad = (n) => String(n).padStart(2, '0');
-  return `PrettyMe_${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-}
-
-function downloadAsJpg(imageUrl) {
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    canvas.toBlob((blob) => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${makeDownloadName()}.jpg`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }, 'image/jpeg', 0.9);
-  };
-  img.src = imageUrl;
-}
-
 function replacePlaceholderWithResult(index, { imageUrl, styleLabel }) {
   const placeholder = resultsGrid.querySelector(`[data-placeholder-index="${index}"]`);
   if (!placeholder) return;
@@ -530,7 +477,13 @@ function replacePlaceholderWithResult(index, { imageUrl, styleLabel }) {
       <a class="download-btn" href="#" data-download="${imageUrl}">Descargar</a>
     </div>
   `;
-  card.querySelector('img').addEventListener('click', () => openLightbox(imageUrl));
+  card.querySelector('img').addEventListener('click', () => {
+    const urls = Array.from(resultsGrid.querySelectorAll('.result-card img'))
+      .map(img => img.src)
+      .filter(Boolean);
+    const idx = urls.indexOf(imageUrl);
+    openLightbox(urls, idx >= 0 ? idx : 0);
+  });
   card.querySelector('[data-download]').addEventListener('click', (e) => {
     e.preventDefault();
     downloadAsJpg(imageUrl);
