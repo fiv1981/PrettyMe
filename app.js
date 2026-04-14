@@ -29,6 +29,7 @@ const generateBtn = document.getElementById('generateBtn');
 const nextStep1Btn = document.getElementById('nextStep1Btn');
 const backStep2Btn = document.getElementById('backStep2Btn');
 const backStep3Btn = document.getElementById('backStep3Btn');
+const restartBtn = document.getElementById('restartBtn');
 const regenerateBtn = document.getElementById('regenerateBtn');
 const cropEditor = document.getElementById('cropEditor');
 const cropViewport = document.getElementById('cropViewport');
@@ -37,6 +38,10 @@ const cropZoom = document.getElementById('cropZoom');
 const rotateCropBtn = document.getElementById('rotateCropBtn');
 const applyCropBtn = document.getElementById('applyCropBtn');
 const cancelCropBtn = document.getElementById('cancelCropBtn');
+const lightbox = document.getElementById('lightbox');
+const lightboxClose = document.getElementById('lightboxClose');
+const lightboxImage = document.getElementById('lightboxImage');
+const lightboxDownload = document.getElementById('lightboxDownload');
 
 let stream;
 let facingMode = 'user';
@@ -83,8 +88,33 @@ nextStep1Btn.addEventListener('click', () => {
 backStep2Btn.addEventListener('click', () => goToStep(1));
 backStep3Btn.addEventListener('click', () => goToStep(2));
 
+restartBtn.addEventListener('click', () => {
+  resultsGrid.innerHTML = '';
+  goToStep(1);
+});
+
 regenerateBtn.addEventListener('click', () => {
+  resultsGrid.innerHTML = '';
   goToStep(2);
+});
+
+/* ===== Lightbox ===== */
+function openLightbox(imageUrl) {
+  lightboxImage.src = imageUrl;
+  lightboxDownload.href = imageUrl;
+  lightbox.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  lightbox.classList.add('hidden');
+  lightboxImage.src = '';
+  document.body.style.overflow = '';
+}
+
+lightboxClose.addEventListener('click', closeLightbox);
+lightbox.addEventListener('click', (e) => {
+  if (e.target === lightbox) closeLightbox();
 });
 
 /* ===== Status ===== */
@@ -115,8 +145,8 @@ function syncCaptureButtons() {
   retakeBtn.classList.toggle('hidden', !hasCapture || isCropping);
   uploadBtn.classList.toggle('hidden', isCropping);
   nextStep1Btn.disabled = !hasCapture;
-  cameraPlaceholder.classList.toggle('hidden', hasStream || hasCapture || isCropping);
-  cameraWrap.classList.toggle('hidden', !hasStream && !hasCapture && !isCropping);
+  cameraPlaceholder.classList.toggle('hidden', hasStream || hasCapture);
+  cameraWrap.classList.toggle('hidden', isCropping);
 }
 
 function renderStyles() {
@@ -163,7 +193,7 @@ async function startCamera(forceRestart = false) {
     capturedImage.classList.add('hidden');
     camera.play?.().catch(() => {});
     updateCameraMirror();
-    setStatus('Camara lista. Hazte un selfie bonito ✨');
+    setStatus('Cámara lista. Hazte un selfie bonito ✨');
     syncCaptureButtons();
     return;
   }
@@ -182,7 +212,7 @@ async function startCamera(forceRestart = false) {
   cameraOverlay.classList.remove('hidden');
   capturedImage.classList.add('hidden');
   updateCameraMirror();
-  setStatus('Camara lista. Hazte un selfie bonito ✨');
+  setStatus('Cámara lista. Hazte un selfie bonito ✨');
   syncCaptureButtons();
 }
 
@@ -224,8 +254,7 @@ function resetCapture() {
   } else {
     camera.classList.add('hidden');
     cameraOverlay.classList.add('hidden');
-    cameraWrap.classList.add('hidden');
-    setStatus('Abre la camara o sube una foto desde la galeria.');
+    setStatus('Abre la cámara o sube una foto desde la galería.');
   }
   syncCaptureButtons();
 }
@@ -415,17 +444,34 @@ async function generateOne(style, imageBase64, mimeType, extra) {
   return response.json();
 }
 
-function addResultCard({ imageUrl, styleLabel }, index) {
+function addPlaceholderCard(styleLabel, index) {
+  const card = document.createElement('div');
+  card.className = 'result-placeholder';
+  card.dataset.placeholderIndex = index;
+  card.innerHTML = `
+    <div class="placeholder-image">
+      <div class="placeholder-glow"></div>
+    </div>
+    <div class="placeholder-label"></div>
+    <div class="placeholder-btn"></div>
+  `;
+  resultsGrid.appendChild(card);
+}
+
+function replacePlaceholderWithResult(index, { imageUrl, styleLabel }) {
+  const placeholder = resultsGrid.querySelector(`[data-placeholder-index="${index}"]`);
+  if (!placeholder) return;
   const card = document.createElement('article');
   card.className = 'result-card';
   card.innerHTML = `
-    <img src="${imageUrl}" alt="Resultado ${index + 1}" />
+    <img src="${imageUrl}" alt="Resultado ${index + 1}" data-lightbox="${imageUrl}" />
     <strong>${styleLabel}</strong>
     <div class="result-actions">
       <a class="download-btn" href="${imageUrl}" download="prettyme-${index + 1}.png">Descargar</a>
     </div>
   `;
-  resultsGrid.appendChild(card);
+  card.querySelector('img').addEventListener('click', () => openLightbox(imageUrl));
+  placeholder.replaceWith(card);
 }
 
 async function generateResults() {
@@ -435,9 +481,7 @@ async function generateResults() {
   }
 
   goToStep(3);
-  const hadResults = resultsGrid.children.length > 0;
-  if (!hadResults) resultsGrid.innerHTML = '';
-  setStatus('Generando tus fotos… esto puede tardar un poco.', '');
+  resultsGrid.innerHTML = '';
   generateBtn.disabled = true;
   regenerateBtn.disabled = true;
 
@@ -448,26 +492,32 @@ async function generateResults() {
     const queue = Array.from({ length: resultCount }, (_, i) => selected[i % selected.length]);
 
     for (let i = 0; i < queue.length; i += 1) {
-      setStatus(`Generando imagen ${i + 1} de ${queue.length}…`);
-      const result = await generateOne(queue[i], data, mimeType, extraPrompt.value.trim());
-      addResultCard({ imageUrl: result.imageUrl, styleLabel: queue[i].label }, i);
+      addPlaceholderCard(queue[i].label, i);
     }
 
-    setStatus('Listo! Descarga las que mas te gusten.', 'success');
+    setStatus('Generando tus fotos… esto puede tardar un poco.', '');
+
+    for (let i = 0; i < queue.length; i += 1) {
+      setStatus(`Generando imagen ${i + 1} de ${queue.length}…`);
+      const result = await generateOne(queue[i], data, mimeType, extraPrompt.value.trim());
+      replacePlaceholderWithResult(i, { imageUrl: result.imageUrl, styleLabel: queue[i].label });
+    }
+
+    setStatus('¡Listo! Toca una imagen para verla en grande.', 'success');
   } catch (error) {
     console.error(error);
     const message = String(error.message || 'Error desconocido');
     if (message.includes('RESOURCE_EXHAUSTED') || message.includes('quota') || message.includes('429')) {
-      if (!resultsGrid.children.length) resultsGrid.innerHTML = `
+      resultsGrid.innerHTML = `
         <article class="empty-state">
-          <strong>La generacion no esta disponible ahora mismo</strong>
+          <strong>La generación no está disponible ahora mismo</strong>
           <span>La API de imagen ha respondido que no hay cuota disponible.</span>
-          <span>Prueba mas tarde o cambia a una clave con cuota activa.</span>
+          <span>Prueba más tarde o cambia a una clave con cuota activa.</span>
         </article>
       `;
       setStatus('Cuota no disponible ahora mismo.', 'warning');
     } else {
-      if (!resultsGrid.children.length) resultsGrid.innerHTML = `
+      resultsGrid.innerHTML = `
         <article class="empty-state">
           <strong>No he podido generar las fotos</strong>
           <span>Algo ha fallado al hablar con el motor de imagen.</span>
@@ -620,8 +670,9 @@ cancelCropBtn.addEventListener('click', () => {
   cropSourceDataUrl = '';
   pinchState = null;
   dragState = null;
-  cameraWrap.classList.add('hidden');
-  setStatus('Carga otra foto desde la galeria o usa la camara.');
+  cameraWrap.classList.remove('hidden');
+  cameraPlaceholder.classList.remove('hidden');
+  setStatus('Carga otra foto desde la galería o usa la cámara.');
   syncCaptureButtons();
 });
 
@@ -641,7 +692,7 @@ generateBtn.addEventListener('click', generateResults);
 renderStyles();
 goToStep(1);
 syncCaptureButtons();
-setStatus('Abre la camara o sube una foto para empezar.');
+setStatus('Abre la cámara o sube una foto para empezar.');
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));

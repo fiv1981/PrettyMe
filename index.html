@@ -42,6 +42,10 @@
             <video id="camera" autoplay playsinline muted class="hidden"></video>
             <img id="capturedImage" class="hidden" alt="Selfie capturado" />
             <div id="cameraOverlay" class="camera-overlay hidden">Encuadra bien tu cara y deja algo de hombros</div>
+            <div id="cameraPlaceholder" class="camera-placeholder">
+              <span class="placeholder-icon">📸</span>
+              <span class="placeholder-text">Tu selfie aparecerá aquí</span>
+            </div>
           </div>
 
           <div id="cropEditor" class="crop-editor hidden">
@@ -54,34 +58,29 @@
                 <label class="crop-zoom-label" for="cropZoom">Zoom</label>
                 <input id="cropZoom" type="range" min="1" max="3" step="0.01" value="1" />
               </div>
-              <button id="rotateCropBtn" class="btn-ghost" type="button">Rotar 90°</button>
+              <button id="rotateCropBtn" class="btn btn-secondary" type="button">Rotar 90°</button>
             </div>
             <div class="crop-actions">
-              <button id="cancelCropBtn" class="btn-ghost">Cancelar</button>
-              <button id="applyCropBtn" class="btn-primary">Usar recorte</button>
+              <button id="cancelCropBtn" class="btn btn-secondary">Cancelar</button>
+              <button id="applyCropBtn" class="btn btn-primary">Usar recorte</button>
             </div>
-          </div>
-
-          <div id="cameraPlaceholder" class="camera-placeholder">
-            <span class="placeholder-icon">📸</span>
-            <span class="placeholder-text">Tu selfie aparecerá aquí</span>
           </div>
         </div>
 
         <input id="galleryInput" class="hidden" type="file" accept="image/*" />
 
         <div class="camera-controls">
-          <button id="startCameraBtn" class="btn-primary">Abrir cámara</button>
-          <button id="captureBtn" class="btn-primary hidden">Hacer selfie</button>
-          <button id="switchCameraBtn" class="btn-ghost hidden">Cambiar cámara</button>
-          <button id="uploadBtn" class="btn-ghost">Subir desde galería</button>
-          <button id="retakeBtn" class="btn-ghost hidden">Repetir</button>
+          <button id="startCameraBtn" class="btn btn-primary">Abrir cámara</button>
+          <button id="captureBtn" class="btn btn-primary hidden">Hacer selfie</button>
+          <button id="switchCameraBtn" class="btn btn-secondary hidden">Cambiar cámara</button>
+          <button id="uploadBtn" class="btn btn-secondary">Galería</button>
+          <button id="retakeBtn" class="btn btn-secondary hidden">Repetir</button>
         </div>
       </div>
 
       <div class="step-footer">
         <p id="statusText" class="status-text">Abre la cámara o sube una foto para empezar</p>
-        <button id="nextStep1Btn" class="btn-primary btn-next" disabled>Siguiente</button>
+        <button id="nextStep1Btn" class="btn btn-primary btn-next" disabled>Siguiente</button>
       </div>
     </section>
 
@@ -121,8 +120,8 @@
       </div>
 
       <div class="step-footer">
-        <button id="backStep2Btn" class="btn-ghost">Atrás</button>
-        <button id="generateBtn" class="btn-primary btn-next">Generar fotos</button>
+        <button id="backStep2Btn" class="btn btn-secondary">Atrás</button>
+        <button id="generateBtn" class="btn btn-primary btn-next">Generar fotos</button>
       </div>
     </section>
 
@@ -131,18 +130,26 @@
       <div class="step-content">
         <div class="step-header">
           <h2 class="step-title">Tus fotos</h2>
-          <p class="step-subtitle">Descarga las que más te gusten</p>
+          <p class="step-subtitle">Toca una imagen para verla en grande</p>
         </div>
 
         <div id="resultsGrid" class="results-grid"></div>
       </div>
 
       <div class="step-footer">
-        <button id="backStep3Btn" class="btn-ghost">Atrás</button>
-        <button id="regenerateBtn" class="btn-primary btn-next">Generar más</button>
+        <button id="backStep3Btn" class="btn btn-secondary">Atrás</button>
+        <button id="restartBtn" class="btn btn-secondary">Volver a empezar</button>
+        <button id="regenerateBtn" class="btn btn-primary btn-next">Generar más</button>
       </div>
     </section>
   </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox hidden">
+    <button id="lightboxClose" class="lightbox-close">&times;</button>
+    <img id="lightboxImage" alt="Imagen en grande" />
+    <a id="lightboxDownload" class="lightbox-download" download>Descargar</a>
+  </div>
 
   <canvas id="captureCanvas" class="hidden"></canvas>
   <script type="module" src="app.js"></script>
