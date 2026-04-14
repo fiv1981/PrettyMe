@@ -1,26 +1,21 @@
 /**
- * Verify a Firebase ID token using Google's public X.509 keys.
+ * Verify a Firebase ID token using Google's JWKS endpoint.
  * Works in Cloudflare Workers/Pages Functions (no Node.js deps).
  */
-const KEYS_URL = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys';
+const JWKS_URL = 'https://www.googleapis.com/oauth2/v3/certs';
 const KEY_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 
 let cachedKeys = null;
 let cachedKeysAt = 0;
 
-async function fetchPublicKeys() {
+async function fetchJWKS() {
   if (cachedKeys && (Date.now() - cachedKeysAt) < KEY_CACHE_TTL) return cachedKeys;
-  try {
-    const resp = await fetch(KEYS_URL);
-    if (!resp.ok) throw new Error(`Failed to fetch Firebase public keys: HTTP ${resp.status}`);
-    cachedKeys = await resp.json();
-    cachedKeysAt = Date.now();
-    return cachedKeys;
-  } catch (e) {
-    // If we have stale cached keys, use them as fallback
-    if (cachedKeys) return cachedKeys;
-    throw e;
-  }
+  const resp = await fetch(JWKS_URL);
+  if (!resp.ok) throw new Error(`Failed to fetch JWKS: HTTP ${resp.status}`);
+  const data = await resp.json();
+  cachedKeys = data.keys;
+  cachedKeysAt = Date.now();
+  return cachedKeys;
 }
 
 function base64UrlToUint8Array(b64url) {
@@ -42,48 +37,41 @@ function decodeJwtPayload(token) {
   return JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')));
 }
 
-async function verifySignature(token, pemKey) {
-  const [b64header, b64payload, b64signature] = token.split('.');
-  const signature = base64UrlToUint8Array(b64signature);
-  const data = new TextEncoder().encode(`${b64header}.${b64payload}`);
-
-  // Parse PEM to ArrayBuffer
-  const pemBody = pemKey.replace(/-----[^-]+-----/g, '').replace(/\s/g, '');
-  const binary = atob(pemBody);
-  const keyBytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) keyBytes[i] = binary.charCodeAt(i);
-
-  const key = await crypto.subtle.importKey(
-    'spki',
-    keyBytes.buffer,
+async function importJwkKey(jwk) {
+  return crypto.subtle.importKey(
+    'jwk',
+    jwk,
     { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
     false,
     ['verify']
   );
-
-  return crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, signature.buffer, data);
 }
 
 export async function verifyFirebaseToken(token, projectId) {
-  if (!token) return { uid: null, debug: 'no token' };
+  if (!token) return null;
 
   try {
     const header = decodeJwtHeader(token);
     const payload = decodeJwtPayload(token);
-    const keys = await fetchPublicKeys();
-    const pem = keys[header.kid];
-    if (!pem) return { uid: null, debug: `no matching key for kid=${header.kid}, available=${Object.keys(keys).join(',')}` };
+    const keys = await fetchJWKS();
+    const jwk = keys.find((k) => k.kid === header.kid);
+    if (!jwk) return null;
 
-    const valid = await verifySignature(token, pem);
-    if (!valid) return { uid: null, debug: 'signature verification failed' };
+    const key = await importJwkKey(jwk);
+    const [b64header, b64payload, b64signature] = token.split('.');
+    const signature = base64UrlToUint8Array(b64signature);
+    const data = new TextEncoder().encode(`${b64header}.${b64payload}`);
+
+    const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, signature, data);
+    if (!valid) return null;
 
     const now = Math.floor(Date.now() / 1000);
-    if (payload.exp < now) return { uid: null, debug: `token expired (exp=${payload.exp}, now=${now})` };
-    if (payload.iss !== `https://securetoken.google.com/${projectId}`) return { uid: null, debug: `iss mismatch: got=${payload.iss}, expected=https://securetoken.google.com/${projectId}` };
-    if (payload.aud !== projectId) return { uid: null, debug: `aud mismatch: got=${payload.aud}, expected=${projectId}` };
+    if (payload.exp < now) return null;
+    if (payload.iss !== `https://securetoken.google.com/${projectId}`) return null;
+    if (payload.aud !== projectId) return null;
 
     return { uid: payload.sub, email: payload.email || null };
-  } catch (e) {
-    return { uid: null, debug: `verify error: ${e.message}`, stack: e.stack?.slice(0, 200) };
+  } catch {
+    return null;
   }
 }
