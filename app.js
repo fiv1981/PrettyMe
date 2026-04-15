@@ -30,6 +30,7 @@ const startCameraBtn = document.getElementById('startCameraBtn');
 const uploadBtn = document.getElementById('uploadBtn');
 const captureBtn = document.getElementById('captureBtn');
 const retakeBtn = document.getElementById('retakeBtn');
+const deleteCaptureBtn = document.getElementById('deleteCaptureBtn');
 const generateBtn = document.getElementById('generateBtn');
 const nextStep1Btn = document.getElementById('nextStep1Btn');
 const backStep2Btn = document.getElementById('backStep2Btn');
@@ -137,6 +138,7 @@ function syncCaptureButtons() {
   switchCameraBtn.classList.toggle('hidden', !hasStream || hasCapture || isCropping);
   captureBtn.classList.toggle('hidden', !hasStream || hasCapture || isCropping);
   retakeBtn.classList.toggle('hidden', !hasCapture || isCropping);
+  deleteCaptureBtn.classList.toggle('hidden', !hasCapture || isCropping);
   uploadBtn.classList.toggle('hidden', isCropping);
   nextStep1Btn.disabled = !hasCapture;
   cameraPlaceholder.classList.toggle('hidden', hasStream || hasCapture);
@@ -697,6 +699,7 @@ switchCameraBtn.addEventListener('click', async () => {
   await startCamera(true);
 });
 uploadBtn.addEventListener('click', () => galleryInput.click());
+deleteCaptureBtn.addEventListener('click', resetCapture);
 galleryInput.addEventListener('change', (event) => loadFromGallery(event.target.files?.[0]));
 captureBtn.addEventListener('click', capturePhoto);
 retakeBtn.addEventListener('click', resetCapture);

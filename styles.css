@@ -1176,6 +1176,27 @@ textarea::placeholder {
 
 .lightbox-delete:active { background: rgba(255, 47, 146, 0.3); }
 
+.delete-capture-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 47, 146, 0.15);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.delete-capture-btn:active { background: rgba(255, 47, 146, 0.3); }
+
 .hidden { display: none !important; }
 
 /* ===== Desktop ===== */
