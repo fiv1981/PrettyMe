@@ -1,5 +1,7 @@
 // js/lightbox.js — Shared lightbox with navigation
 
+import { getIdToken } from './auth.js';
+
 const lightbox = document.getElementById('lightbox');
 const lightboxImage = document.getElementById('lightboxImage');
 const lightboxClose = document.getElementById('lightboxClose');
@@ -7,11 +9,14 @@ const lightboxDownload = document.getElementById('lightboxDownload');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
 const lightboxCounter = document.getElementById('lightboxCounter');
+const lightboxDelete = document.getElementById('lightboxDelete');
 
 let lightboxUrls = [];
+let lightboxR2Keys = [];
 let currentIndex = 0;
 let touchStartX = 0;
 let touchStartY = 0;
+let onDelete = null;
 
 function makeDownloadName() {
   const now = new Date();
@@ -55,6 +60,9 @@ function showCurrentImage() {
       ? `${currentIndex + 1} / ${lightboxUrls.length}`
       : '';
   }
+  // Show delete button only for gallery images (have r2Key)
+  const hasR2Key = lightboxR2Keys[currentIndex];
+  if (lightboxDelete) lightboxDelete.classList.toggle('hidden', !hasR2Key);
 }
 
 function toggleNav() {
@@ -76,8 +84,9 @@ function onKeydown(e) {
   else if (e.key === 'Escape') { closeLightbox(); }
 }
 
-export function openLightbox(urlsOrSingle, startIndex = 0) {
+export function openLightbox(urlsOrSingle, startIndex = 0, r2Keys = []) {
   lightboxUrls = typeof urlsOrSingle === 'string' ? [urlsOrSingle] : urlsOrSingle;
+  lightboxR2Keys = r2Keys.length ? r2Keys : lightboxUrls.map(() => null);
   currentIndex = Math.max(0, Math.min(startIndex, lightboxUrls.length - 1));
   showCurrentImage();
   toggleNav();
@@ -90,12 +99,47 @@ export function closeLightbox() {
   lightbox.classList.add('hidden');
   lightboxImage.src = '';
   lightboxUrls = [];
+  lightboxR2Keys = [];
   currentIndex = 0;
+  onDelete = null;
   document.removeEventListener('keydown', onKeydown);
   // Only restore scroll if no overlay panel is still open
   const galleryPanel = document.getElementById('galleryPanel');
   if (!galleryPanel || !galleryPanel.classList.contains('is-open')) {
     document.body.style.overflow = '';
+  }
+}
+
+async function deleteCurrentImage() {
+  const r2Key = lightboxR2Keys[currentIndex];
+  if (!r2Key) return;
+  if (!confirm('¿Eliminar esta foto de tu galería?')) return;
+
+  try {
+    const token = await getIdToken();
+    const resp = await fetch(`/api/images/${r2Key}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error('Delete failed');
+
+    // Remove from arrays
+    lightboxUrls.splice(currentIndex, 1);
+    lightboxR2Keys.splice(currentIndex, 1);
+
+    // Notify gallery to refresh
+    if (onDelete) onDelete(r2Key);
+
+    if (lightboxUrls.length === 0) {
+      closeLightbox();
+      return;
+    }
+    if (currentIndex >= lightboxUrls.length) currentIndex = lightboxUrls.length - 1;
+    showCurrentImage();
+    toggleNav();
+  } catch (err) {
+    console.error('Delete error:', err);
+    alert('No se pudo eliminar la foto.');
   }
 }
 
@@ -118,6 +162,12 @@ if (lightboxNext) {
     navigate(1);
   });
 }
+if (lightboxDelete) {
+  lightboxDelete.addEventListener('click', (e) => {
+    e.stopPropagation();
+    deleteCurrentImage();
+  });
+}
 
 // Touch swipe
 if (lightbox) {
@@ -136,3 +186,5 @@ if (lightbox) {
     }
   }, { passive: true });
 }
+
+export function setOnDelete(cb) { onDelete = cb; }

@@ -73,6 +73,13 @@ const cropState = {
 
 /* ===== Wizard navigation ===== */
 function goToStep(step) {
+  if (step === 1 && currentStep !== 1) {
+    if (capturedDataUrl) {
+      setStatus('Selfie lista. Pulsa Siguiente para continuar.', 'success');
+    } else {
+      setStatus('Abre la camara o sube una foto para empezar.', '');
+    }
+  }
   currentStep = step;
   document.querySelectorAll('.step').forEach((el) => {
     el.classList.toggle('active', Number(el.dataset.step) === step);
@@ -97,7 +104,6 @@ forwardStep2Btn.addEventListener('click', () => {
 backStep3Btn.addEventListener('click', () => goToStep(2));
 
 restartBtn.addEventListener('click', () => {
-  resultsGrid.innerHTML = '';
   goToStep(1);
 });
 

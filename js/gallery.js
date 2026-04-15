@@ -1,7 +1,7 @@
 // js/gallery.js — Gallery panel logic
 
 import { isSignedIn, onAuthChange, getIdToken } from './auth.js';
-import { openLightbox } from './lightbox.js';
+import { openLightbox, setOnDelete } from './lightbox.js';
 
 const galleryPanel = document.getElementById('galleryPanel');
 const galleryGrid = document.getElementById('galleryGrid');
@@ -13,6 +13,7 @@ let loading = false;
 // Cache for image blob URLs (avoids re-fetching)
 const imageCache = new Map();
 let galleryImageUrls = [];
+let galleryR2Keys = [];
 
 export function openGallery() {
   galleryPanel.classList.add('is-open');
@@ -104,12 +105,13 @@ async function loadGallery() {
 
     galleryGrid.innerHTML = '';
     galleryImageUrls = [];
+    galleryR2Keys = [];
     for (const img of data.images) {
       const card = document.createElement('div');
       card.className = 'gallery-card';
       // Show a placeholder while loading
       card.innerHTML = `
-        <div class="gallery-card-loading" style="aspect-ratio:3/4;background:var(--card-hover);border-radius:var(--radius)"></div>
+        <div class="gallery-card-loading" style="aspect-ratio:1/1;background:var(--card-hover);border-radius:var(--radius)"></div>
         <div class="gallery-card-info">
           <strong>${img.style || ''}</strong>
           <span>${formatDate(img.createdAt)}</span>
@@ -119,16 +121,15 @@ async function loadGallery() {
       // Fetch image with auth and then set the src
       const imageUrl = await fetchImageUrl(img.url);
       galleryImageUrls.push(imageUrl);
+      galleryR2Keys.push(img.r2Key);
       const clickIndex = galleryImageUrls.length - 1;
       const imgEl = document.createElement('img');
       imgEl.src = imageUrl;
       imgEl.alt = img.style || 'Foto';
       imgEl.loading = 'lazy';
       imgEl.addEventListener('click', () => {
-        openLightbox([...galleryImageUrls], clickIndex);
+        openLightbox([...galleryImageUrls], clickIndex, [...galleryR2Keys]);
       });
-      imgEl.style.aspectRatio = '3/4';
-      imgEl.style.objectFit = 'cover';
       imgEl.style.cursor = 'pointer';
 
       // Replace placeholder with actual image
@@ -145,6 +146,9 @@ async function loadGallery() {
 // Wire close button
 if (galleryClose) galleryClose.addEventListener('click', closeGallery);
 if (galleryOverlay) galleryOverlay.addEventListener('click', closeGallery);
+
+// When an image is deleted from the lightbox, reload gallery
+setOnDelete(() => loadGallery());
 
 // Reload gallery when auth changes
 onAuthChange(() => {

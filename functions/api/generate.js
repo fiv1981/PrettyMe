@@ -1,4 +1,6 @@
 import { verifyFirebaseToken } from '../_shared/verify-token.js';
+import { PNG } from 'pngjs';
+import JPEG from 'jpeg-js';
 
 export const onRequestOptions = async () => {
   return new Response(null, {
@@ -77,6 +79,18 @@ async function generateWithGemini({ apiKey, prompt, imageBase64, mimeType, style
   throw new Error('No image returned by Gemini');
 }
 
+function pngToJpeg(base64) {
+  const pngBuffer = Buffer.from(base64, 'base64');
+  const png = PNG.sync.read(pngBuffer);
+  const rawImageData = {
+    width: png.width,
+    height: png.height,
+    data: png.data
+  };
+  const jpegData = JPEG.encode(rawImageData, 100);
+  return jpegData.data;
+}
+
 async function persistImage({ env, uid, dataUrl, style, orientation, photoType }) {
   if (!env.IMAGES || !env.DB) return null;
 
@@ -84,11 +98,19 @@ async function persistImage({ env, uid, dataUrl, style, orientation, photoType }
     const parts = dataUrlToParts(dataUrl);
     if (!parts) return null;
 
+    let imageBytes;
+    let contentType = 'image/jpeg';
+
+    if (parts.mimeType === 'image/png') {
+      imageBytes = pngToJpeg(parts.base64);
+    } else {
+      imageBytes = base64ToUint8Array(parts.base64);
+    }
+
     const r2Key = `${uid}/${crypto.randomUUID()}.jpg`;
-    const imageBytes = base64ToUint8Array(parts.base64);
 
     await env.IMAGES.put(r2Key, imageBytes, {
-      httpMetadata: { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000' },
+      httpMetadata: { contentType, cacheControl: 'public, max-age=31536000' },
       customMetadata: { uid, style: style || '' }
     });
 

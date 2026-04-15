@@ -8,6 +8,8 @@
     "deploy": "wrangler pages deploy ."
   },
   "dependencies": {
-    "@google/genai": "^0.14.1"
+    "@google/genai": "^0.14.1",
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0"
   }
 }

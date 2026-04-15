@@ -53,8 +53,52 @@ export async function onRequestOptions() {
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
   });
+}
+
+export async function onRequestDelete(context) {
+  try {
+    const FIREBASE_PROJECT_ID = context.env.FIREBASE_PROJECT_ID || '';
+    const authHeader = context.request.headers.get('Authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!token || !FIREBASE_PROJECT_ID) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }), { status: 401, headers: { 'content-type': 'application/json' } });
+    }
+
+    const decoded = await verifyFirebaseToken(token, FIREBASE_PROJECT_ID);
+    if (!decoded) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: { 'content-type': 'application/json' } });
+    }
+
+    const url = new URL(context.request.url);
+    const key = url.pathname.replace(/^\/api\/images\/?/, '');
+
+    if (!key) {
+      return new Response(JSON.stringify({ error: 'Missing image key' }), { status: 400, headers: { 'content-type': 'application/json' } });
+    }
+
+    if (!key.startsWith(`${decoded.uid}/`)) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'content-type': 'application/json' } });
+    }
+
+    // Delete from R2
+    if (context.env.IMAGES) {
+      await context.env.IMAGES.delete(key);
+    }
+
+    // Delete from D1
+    if (context.env.DB) {
+      await context.env.DB.prepare('DELETE FROM images WHERE uid = ? AND r2_key = ?').bind(decoded.uid, key).run();
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { 'content-type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message || 'Delete failed' }), { status: 500, headers: { 'content-type': 'application/json' } });
+  }
 }
