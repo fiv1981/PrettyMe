@@ -80,14 +80,14 @@ async function generateWithGemini({ apiKey, prompt, imageBase64, mimeType, style
 async function generateWithQwen({ apiKey, prompt, imageBase64, mimeType }) {
   const imageDataUrl = `data:${mimeType};base64,${imageBase64}`;
 
-  const response = await fetch('https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
+  const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
       'Authorization': `Bearer ${apiKey}`
     },
     body: JSON.stringify({
-      model: 'qwen-image-edit',
+      model: 'qwen-image-edit-plus',
       input: {
         messages: [
           {
