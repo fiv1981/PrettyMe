@@ -807,7 +807,7 @@ authBtn.addEventListener('click', () => {
   if (user) {
     openAccountPanel();
   } else {
-    authModal.classList.remove('hidden');
+    openAuthModal();
   }
 });
 
@@ -816,14 +816,23 @@ accountOverlay.addEventListener('click', closeAccountPanel);
 
 accountLoginBtn.addEventListener('click', () => {
   closeAccountPanel();
-  authModal.classList.remove('hidden');
+  openAuthModal();
 });
 
 function resetAuthModal() {
   authModal.classList.add('hidden');
   document.querySelector('.auth-providers').classList.remove('hidden');
   document.getElementById('authLoader').classList.add('hidden');
+  authEmailForm.classList.add('hidden');
   hideAuthError();
+}
+
+function openAuthModal() {
+  document.querySelector('.auth-providers').classList.remove('hidden');
+  document.getElementById('authLoader').classList.add('hidden');
+  authEmailForm.classList.add('hidden');
+  hideAuthError();
+  authModal.classList.remove('hidden');
 }
 
 authModalClose.addEventListener('click', resetAuthModal);
