@@ -268,6 +268,26 @@ function resetCapture() {
   syncCaptureButtons();
 }
 
+function fullResetCapture() {
+  stopStream();
+  capturedDataUrl = '';
+  cropSourceDataUrl = '';
+  dragState = null;
+  pinchState = null;
+  capturedImage.src = '';
+  capturedImage.classList.add('hidden');
+  camera.classList.add('hidden');
+  cameraOverlay.classList.add('hidden');
+  cameraPlaceholder.classList.remove('hidden');
+  cropImage.src = '';
+  cropEditor.classList.add('hidden');
+  cropZoom.value = '1';
+  cameraWrap.classList.remove('hidden');
+  cameraWrap.classList.add('camera-wrap--compact');
+  setStatus('Abre la cámara o sube una foto desde la galería.');
+  syncCaptureButtons();
+}
+
 /* ===== Crop editor ===== */
 function getRotatedDimensions(width, height, rotation) {
   const quarterTurns = ((rotation % 360) + 360) % 360;
@@ -699,7 +719,7 @@ switchCameraBtn.addEventListener('click', async () => {
   await startCamera(true);
 });
 uploadBtn.addEventListener('click', () => galleryInput.click());
-deleteCaptureBtn.addEventListener('click', resetCapture);
+deleteCaptureBtn.addEventListener('click', fullResetCapture);
 galleryInput.addEventListener('change', (event) => loadFromGallery(event.target.files?.[0]));
 captureBtn.addEventListener('click', capturePhoto);
 retakeBtn.addEventListener('click', resetCapture);
