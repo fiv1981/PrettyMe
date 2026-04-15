@@ -927,7 +927,7 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   padding-top: var(--safe-top);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .gallery-panel.is-open { transform: translateX(0); }
@@ -938,6 +938,7 @@ textarea::placeholder {
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
 }
 
 .gallery-title {
@@ -963,7 +964,9 @@ textarea::placeholder {
 .gallery-close:hover { background: var(--secondary-bg); }
 
 .gallery-grid {
+  flex: 1;
   overflow-y: auto;
+  min-height: 0;
   padding: 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -983,6 +986,8 @@ textarea::placeholder {
   object-fit: cover;
   display: block;
   cursor: pointer;
+  max-width: 100%;
+  max-height: none;
 }
 
 .gallery-card img:active { opacity: 0.85; }
