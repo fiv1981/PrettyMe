@@ -863,6 +863,48 @@ textarea::placeholder {
   margin-top: 10px;
 }
 
+.provider-selector {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.provider-label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.provider-options {
+  display: flex;
+  gap: 8px;
+}
+
+.provider-btn {
+  flex: 1;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.provider-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 47, 146, 0.08);
+}
+
+.provider-btn:active { opacity: 0.8; }
+
 /* ===== Gallery Panel ===== */
 .gallery-overlay {
   position: fixed;
