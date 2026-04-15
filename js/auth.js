@@ -79,6 +79,10 @@ export async function signUpWithEmail(email, password) {
   await firebase.auth().createUserWithEmailAndPassword(email, password);
 }
 
+export async function resetPassword(email) {
+  await firebase.auth().sendPasswordResetEmail(email);
+}
+
 export async function signOut() {
   await firebase.auth().signOut();
 }

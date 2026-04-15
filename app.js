@@ -1,4 +1,4 @@
-import { getCurrentUser, onAuthChange, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut as firebaseSignOut } from './js/auth.js';
+import { getCurrentUser, onAuthChange, signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword, signOut as firebaseSignOut } from './js/auth.js';
 import { openGallery, closeGallery } from './js/gallery.js';
 import { openLightbox, closeLightbox, downloadAsJpg } from './js/lightbox.js';
 import { authenticatedFetch } from './js/api.js';
@@ -722,6 +722,7 @@ const authEmailForm = document.getElementById('authEmailForm');
 const authEmailSignIn = document.getElementById('authEmailSignIn');
 const authEmailSignUp = document.getElementById('authEmailSignUp');
 const authEmailBack = document.getElementById('authEmailBack');
+const authResetPassword = document.getElementById('authResetPassword');
 const authError = document.getElementById('authError');
 const accountPanel = document.getElementById('accountPanel');
 const accountOverlay = document.getElementById('accountOverlay');
@@ -876,6 +877,13 @@ authEmailSignUp.addEventListener('click', async () => {
   const email = document.getElementById('authEmail').value;
   const password = document.getElementById('authPassword').value;
   try { await signUpWithEmail(email, password); authModal.classList.add('hidden'); hideAuthError(); }
+  catch (e) { showAuthError(e.message); }
+});
+
+authResetPassword.addEventListener('click', async () => {
+  const email = document.getElementById('authEmail').value;
+  if (!email) { showAuthError('Introduce tu email para restablecer la contraseña'); return; }
+  try { await resetPassword(email); showAuthError('Email de restablecimiento enviado. Revisa tu bandeja.'); }
   catch (e) { showAuthError(e.message); }
 });
 
