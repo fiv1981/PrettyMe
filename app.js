@@ -823,8 +823,19 @@ authModalClose.addEventListener('click', () => authModal.classList.add('hidden')
 authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
 
 authGoogle.addEventListener('click', async () => {
-  try { await signInWithGoogle(); authModal.classList.add('hidden'); hideAuthError(); }
-  catch (e) { showAuthError(e.message || e.code || 'Error al conectar con Google'); }
+  const authProviders = document.querySelector('.auth-providers');
+  const authLoader = document.getElementById('authLoader');
+  authProviders.classList.add('hidden');
+  authLoader.classList.remove('hidden');
+  try {
+    await signInWithGoogle();
+    authModal.classList.add('hidden');
+    hideAuthError();
+  } catch (e) {
+    authProviders.classList.remove('hidden');
+    authLoader.classList.add('hidden');
+    showAuthError(e.message || e.code || 'Error al conectar con Google');
+  }
 });
 
 authEmailToggle.addEventListener('click', () => {
