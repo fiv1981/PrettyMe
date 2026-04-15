@@ -1134,24 +1134,25 @@ textarea::placeholder {
   position: absolute;
   bottom: 20px;
   right: 20px;
-  width: 44px;
-  height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
-  font-size: 1.3rem;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
+  height: var(--btn-height);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--radius);
+  padding: 0 20px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: rgba(255, 47, 146, 0.15);
+  color: var(--accent);
   transition: background 0.15s;
   z-index: 301;
   bottom: calc(20px + var(--safe-bottom));
 }
 
-.lightbox-delete:active { background: rgba(239, 68, 68, 0.4); }
+.lightbox-delete:active { background: rgba(255, 47, 146, 0.3); }
 
 .hidden { display: none !important; }
 
