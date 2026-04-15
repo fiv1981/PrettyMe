@@ -1,6 +1,4 @@
 import { verifyFirebaseToken } from '../_shared/verify-token.js';
-import { PNG } from 'pngjs';
-import JPEG from 'jpeg-js';
 
 export const onRequestOptions = async () => {
   return new Response(null, {
@@ -126,18 +124,6 @@ async function generateWithQwen({ apiKey, prompt, imageBase64, mimeType }) {
   return `data:${imgBlob.type || 'image/png'};base64,${b64}`;
 }
 
-function pngToJpeg(base64) {
-  const pngBuffer = Buffer.from(base64, 'base64');
-  const png = PNG.sync.read(pngBuffer);
-  const rawImageData = {
-    width: png.width,
-    height: png.height,
-    data: png.data
-  };
-  const jpegData = JPEG.encode(rawImageData, 100);
-  return jpegData.data;
-}
-
 async function persistImage({ env, uid, dataUrl, style, orientation, photoType }) {
   if (!env.IMAGES || !env.DB) return null;
 
@@ -145,16 +131,12 @@ async function persistImage({ env, uid, dataUrl, style, orientation, photoType }
     const parts = dataUrlToParts(dataUrl);
     if (!parts) return null;
 
-    let imageBytes;
-    let contentType = 'image/jpeg';
+    const isPng = parts.mimeType === 'image/png';
+    const ext = isPng ? 'png' : 'jpg';
+    const contentType = isPng ? 'image/png' : 'image/jpeg';
+    const imageBytes = base64ToUint8Array(parts.base64);
 
-    if (parts.mimeType === 'image/png') {
-      imageBytes = pngToJpeg(parts.base64);
-    } else {
-      imageBytes = base64ToUint8Array(parts.base64);
-    }
-
-    const r2Key = `${uid}/${crypto.randomUUID()}.jpg`;
+    const r2Key = `${uid}/${crypto.randomUUID()}.${ext}`;
 
     await env.IMAGES.put(r2Key, imageBytes, {
       httpMetadata: { contentType, cacheControl: 'public, max-age=31536000' },
