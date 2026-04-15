@@ -927,6 +927,7 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   padding-top: var(--safe-top);
+  overflow-y: auto;
 }
 
 .gallery-panel.is-open { transform: translateX(0); }
@@ -962,14 +963,11 @@ textarea::placeholder {
 .gallery-close:hover { background: var(--secondary-bg); }
 
 .gallery-grid {
-  flex: 1;
   overflow-y: auto;
-  min-height: 0;
   padding: 16px;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  align-content: start;
 }
 
 .gallery-card {
