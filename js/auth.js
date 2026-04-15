@@ -5,7 +5,7 @@ let currentUser = null;
 // Firebase config — must be filled with your project values
 const firebaseConfig = {
   apiKey: 'AIzaSyABhZx47LD_YXHfFZjf32bJx1rLGNqpLP0',
-  authDomain: 'prettymeapp.pages.dev',
+  authDomain: 'gen-lang-client-0078028208.firebaseapp.com',
   projectId: 'gen-lang-client-0078028208'
 };
 
