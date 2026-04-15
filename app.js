@@ -819,8 +819,15 @@ accountLoginBtn.addEventListener('click', () => {
   authModal.classList.remove('hidden');
 });
 
-authModalClose.addEventListener('click', () => authModal.classList.add('hidden'));
-authModal.addEventListener('click', (e) => { if (e.target === authModal) authModal.classList.add('hidden'); });
+function resetAuthModal() {
+  authModal.classList.add('hidden');
+  document.querySelector('.auth-providers').classList.remove('hidden');
+  document.getElementById('authLoader').classList.add('hidden');
+  hideAuthError();
+}
+
+authModalClose.addEventListener('click', resetAuthModal);
+authModal.addEventListener('click', (e) => { if (e.target === authModal) resetAuthModal(); });
 
 authGoogle.addEventListener('click', async () => {
   const authProviders = document.querySelector('.auth-providers');
@@ -829,8 +836,7 @@ authGoogle.addEventListener('click', async () => {
   authLoader.classList.remove('hidden');
   try {
     await signInWithGoogle();
-    authModal.classList.add('hidden');
-    hideAuthError();
+    resetAuthModal();
   } catch (e) {
     authProviders.classList.remove('hidden');
     authLoader.classList.add('hidden');
