@@ -77,52 +77,6 @@ async function generateWithGemini({ apiKey, prompt, imageBase64, mimeType, style
   throw new Error('No image returned by Gemini');
 }
 
-async function generateWithQwen({ apiKey, prompt, imageBase64, mimeType }) {
-  const imageDataUrl = `data:${mimeType};base64,${imageBase64}`;
-
-  const response = await fetch('https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation', {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: 'qwen-image-edit-plus',
-      input: {
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { image: imageDataUrl },
-              { text: prompt }
-            ]
-          }
-        ]
-      },
-      parameters: {
-        n: 1,
-        watermark: false
-      }
-    })
-  });
-
-  const data = await response.json();
-  if (!response.ok || data.code) {
-    throw new Error(data?.message || data?.code || 'Qwen request failed');
-  }
-
-  const images = data?.output?.choices?.[0]?.message?.content || [];
-  const imageUrl = images.find(c => c.image)?.image;
-  if (!imageUrl) throw new Error('No image returned by Qwen');
-
-  // Qwen returns expiring URLs — fetch and convert to data URL
-  const imgResp = await fetch(imageUrl);
-  if (!imgResp.ok) throw new Error('Failed to download Qwen image');
-  const imgBlob = await imgResp.blob();
-  const arrayBuf = await imgBlob.arrayBuffer();
-  const b64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuf)));
-  return `data:${imgBlob.type || 'image/png'};base64,${b64}`;
-}
 
 async function persistImage({ env, uid, dataUrl, style, orientation, photoType }) {
   if (!env.IMAGES || !env.DB) return null;
@@ -174,40 +128,24 @@ export async function onRequestPost(context) {
       if (decoded) uid = decoded.uid;
     }
 
-    const { prompt, imageBase64, mimeType, style, imageDataUrl, orientation, photoType, provider } = await context.request.json();
+    const { prompt, imageBase64, mimeType, style, imageDataUrl, orientation, photoType } = await context.request.json();
     const imageParts = imageBase64 && mimeType ? { imageBase64, mimeType } : dataUrlToParts(imageDataUrl);
 
     if (!prompt || !imageParts?.imageBase64 || !imageParts?.mimeType) {
       return json({ error: 'Missing prompt or image' }, 400);
     }
 
-    const DASHSCOPE_API_KEY = context.env.DASHSCOPE_API_KEY || '';
-    const useQwen = provider === 'qwen' && DASHSCOPE_API_KEY;
-
-    let imageUrl;
-    let providerName;
-
-    if (useQwen) {
-      imageUrl = await generateWithQwen({
-        apiKey: DASHSCOPE_API_KEY,
-        prompt,
-        imageBase64: imageParts.imageBase64,
-        mimeType: imageParts.mimeType
-      });
-      providerName = 'qwen-image-edit';
-    } else {
-      if (!GEMINI_API_KEY) {
-        return json({ error: 'Missing GEMINI_API_KEY' }, 500);
-      }
-      imageUrl = await generateWithGemini({
-        apiKey: GEMINI_API_KEY,
-        prompt,
-        imageBase64: imageParts.imageBase64,
-        mimeType: imageParts.mimeType,
-        style
-      });
-      providerName = 'gemini-2.5-flash-image';
+    if (!GEMINI_API_KEY) {
+      return json({ error: 'Missing GEMINI_API_KEY' }, 500);
     }
+
+    const imageUrl = await generateWithGemini({
+      apiKey: GEMINI_API_KEY,
+      prompt,
+      imageBase64: imageParts.imageBase64,
+      mimeType: imageParts.mimeType,
+      style
+    });
 
     // Persist if authenticated
     let r2Key = null;
@@ -220,7 +158,7 @@ export async function onRequestPost(context) {
       console.warn('No uid — image will not be saved to gallery. Check FIREBASE_PROJECT_ID env var.');
     }
 
-    const response = { imageUrl, provider: providerName };
+    const response = { imageUrl, provider: 'gemini-2.5-flash-image' };
     if (r2Key) response.r2Key = r2Key;
     return json(response);
   } catch (error) {

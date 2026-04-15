@@ -56,7 +56,7 @@ let capturedDataUrl = '';
 let cropSourceDataUrl = '';
 let dragState = null;
 let pinchState = null;
-let generationProvider = localStorage.getItem('prettyme_provider') || 'gemini';
+const generationProvider = 'gemini';
 const selectedStyles = new Set(['studio', 'travel']);
 const cropState = {
   scale: 1,
@@ -467,7 +467,6 @@ async function generateOne(style, imageBase64, mimeType, extra) {
       mimeType,
       imageDataUrl: capturedDataUrl,
       style: style.label,
-      provider: generationProvider,
       orientation,
       photoType
     })
@@ -920,19 +919,3 @@ galleryBtn.addEventListener('click', () => {
   openGallery();
 });
 
-// Provider selector
-document.querySelectorAll('.provider-btn').forEach(btn => {
-  // Set initial active state
-  if (btn.dataset.provider === generationProvider) {
-    btn.classList.add('active');
-    btn.parentElement.querySelectorAll('.provider-btn').forEach(b => {
-      if (b !== btn) b.classList.remove('active');
-    });
-  }
-  btn.addEventListener('click', () => {
-    generationProvider = btn.dataset.provider;
-    localStorage.setItem('prettyme_provider', generationProvider);
-    btn.parentElement.querySelectorAll('.provider-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
